@@ -1,0 +1,130 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #f4f6f8;
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.container {
+  background: #ffffff;
+  padding: 30px;
+  width: 380px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+}
+
+.theme-toggle {
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+.balance {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.income, .expense {
+  width: 48%;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.income {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.expense {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filters select {
+  flex: 1;
+  padding: 6px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: #f9f9f9;
+  padding: 10px;
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 6px;
+  border-right: 6px solid;
+}
+
+li.plus {
+  border-color: #2e7d32;
+}
+
+li.minus {
+  border-color: #c62828;
+}
+
+.actions button {
+  margin-left: 6px;
+  border: none;
+  cursor: pointer;
+  background: none;
+  font-size: 16px;
+}
+
+form input, form select, form button {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+}
+
+button {
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* DARK MODE */
+body.dark {
+  background: #121212;
+  color: #eaeaea;
+}
+
+body.dark .container {
+  background: #1e1e1e;
+}
+
+body.dark li {
+  background: #2a2a2a;
+  color: #ffffff;
+}
