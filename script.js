@@ -1,3 +1,5 @@
+const API_URL = "https://expense-tracker-shck.onrender.com/api/transactions";
+
 const balanceEl = document.getElementById("balance");
 const incomeEl = document.getElementById("income");
 const expenseEl = document.getElementById("expense");
@@ -13,7 +15,7 @@ const monthFilter = document.getElementById("monthFilter");
 const yearFilter = document.getElementById("yearFilter");
 const themeSwitch = document.getElementById("themeSwitch");
 
-let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+let transactions = [];
 let editId = null;
 let chart;
 
@@ -31,8 +33,19 @@ themeSwitch.addEventListener("change", () => {
   );
 });
 
+/* ---------- FETCH TRANSACTIONS FROM BACKEND ---------- */
+async function fetchTransactions() {
+  try {
+    const res = await fetch(API_URL);
+    transactions = await res.json();
+    init();
+  } catch (err) {
+    console.error("Error fetching transactions:", err);
+  }
+}
+
 /* ---------- ADD / EDIT ---------- */
-form.addEventListener("submit", e => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const desc = text.value.trim();
@@ -42,32 +55,45 @@ form.addEventListener("submit", e => {
   const signedAmount =
     type.value === "expense" ? -Math.abs(val) : Math.abs(val);
 
-  if (editId) {
-    transactions = transactions.map(t =>
-      t.id === editId
-        ? { ...t, text: desc, amount: signedAmount, category: category.value }
-        : t
-    );
-    editId = null;
-  } else {
-    transactions.push({
-      id: Date.now(),
-      text: desc,
-      amount: signedAmount,
-      category: category.value
-    });
-  }
+  try {
+    if (editId) {
+      await fetch(`${API_URL}/${editId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: desc,
+          amount: signedAmount,
+          category: category.value,
+        }),
+      });
+      editId = null;
+    } else {
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: desc,
+          amount: signedAmount,
+          category: category.value,
+        }),
+      });
+    }
 
-  localStorage.setItem("transactions", JSON.stringify(transactions));
-  form.reset();
-  init();
+    form.reset();
+    fetchTransactions();
+  } catch (err) {
+    console.error("Error saving transaction:", err);
+  }
 });
 
 /* ---------- DELETE ---------- */
-function deleteTransaction(id) {
-  transactions = transactions.filter(t => t.id !== id);
-  localStorage.setItem("transactions", JSON.stringify(transactions));
-  init();
+async function deleteTransaction(id) {
+  try {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    fetchTransactions();
+  } catch (err) {
+    console.error("Error deleting transaction:", err);
+  }
 }
 
 /* ---------- EDIT ---------- */
@@ -76,15 +102,19 @@ function editTransaction(t) {
   amount.value = Math.abs(t.amount);
   type.value = t.amount < 0 ? "expense" : "income";
   category.value = t.category;
-  editId = t.id;
+  editId = t._id;
 }
 
 /* ---------- FILTER ---------- */
 function getFilteredTransactions() {
-  return transactions.filter(t => {
-    const d = new Date(t.id);
-    const m = monthFilter.value === "" || d.getMonth() == monthFilter.value;
-    const y = yearFilter.value === "" || d.getFullYear() == yearFilter.value;
+  return transactions.filter((t) => {
+    const d = new Date(t.createdAt || t._id);
+    const m =
+      monthFilter.value === "" ||
+      d.getMonth() == monthFilter.value;
+    const y =
+      yearFilter.value === "" ||
+      d.getFullYear() == yearFilter.value;
     return m && y;
   });
 }
@@ -94,9 +124,10 @@ function init() {
   list.innerHTML = "";
 
   const filtered = getFilteredTransactions();
-  let income = 0, expense = 0;
+  let income = 0,
+    expense = 0;
 
-  filtered.forEach(t => {
+  filtered.forEach((t) => {
     const li = document.createElement("li");
     li.className = t.amount < 0 ? "minus" : "plus";
 
@@ -105,7 +136,7 @@ function init() {
       <span>₹${Math.abs(t.amount)}</span>
       <div class="actions">
         <button onclick='editTransaction(${JSON.stringify(t)})'>✏️</button>
-        <button onclick='deleteTransaction(${t.id})'>❌</button>
+        <button onclick='deleteTransaction("${t._id}")'>❌</button>
       </div>
     `;
 
@@ -124,9 +155,16 @@ function init() {
 
 /* ---------- YEARS ---------- */
 function populateYears() {
-  const years = [...new Set(transactions.map(t => new Date(t.id).getFullYear()))];
+  const years = [
+    ...new Set(
+      transactions.map((t) =>
+        new Date(t.createdAt || t._id).getFullYear()
+      )
+    ),
+  ];
+
   yearFilter.innerHTML = `<option value="">All Years</option>`;
-  years.forEach(y => {
+  years.forEach((y) => {
     const opt = document.createElement("option");
     opt.value = y;
     opt.textContent = y;
@@ -143,15 +181,18 @@ function renderChart(income, expense) {
     type: "pie",
     data: {
       labels: ["Income", "Expense"],
-      datasets: [{
-        data: [income, expense],
-        backgroundColor: ["#2e7d32", "#c62828"]
-      }]
-    }
+      datasets: [
+        {
+          data: [income, expense],
+          backgroundColor: ["#2e7d32", "#c62828"],
+        },
+      ],
+    },
   });
 }
 
 monthFilter.addEventListener("change", init);
 yearFilter.addEventListener("change", init);
 
-init();
+/* ---------- INITIAL LOAD ---------- */
+fetchTransactions();
