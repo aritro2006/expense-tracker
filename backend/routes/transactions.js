@@ -1,48 +1,31 @@
 const express = require("express");
-const router = express.Router();
 const Transaction = require("../models/Transaction");
+const auth = require("../middleware/authMiddleware");
 
-// GET all
-router.get("/", async (req, res) => {
-  const transactions = await Transaction.find().sort({ createdAt: -1 });
+const router = express.Router();
+
+/* GET USER TRANSACTIONS */
+router.get("/", auth, async (req, res) => {
+  const transactions = await Transaction.find({ user: req.user.id });
   res.json(transactions);
 });
 
-// POST new
-router.post("/", async (req, res) => {
-  const { text, amount, type, category } = req.body;
-
-  const signedAmount = type === "expense" ? -amount : amount;
-
-  const transaction = new Transaction({
-    text,
-    amount: signedAmount,
-    type,
-    category
+/* ADD TRANSACTION */
+router.post("/", auth, async (req, res) => {
+  const transaction = await Transaction.create({
+    user: req.user.id,
+    text: req.body.text,
+    amount: req.body.amount,
+    category: req.body.category
   });
 
-  await transaction.save();
-  res.json(transaction);
+  res.status(201).json(transaction);
 });
 
-// UPDATE
-router.put("/:id", async (req, res) => {
-  const { text, amount, type, category } = req.body;
-  const signedAmount = type === "expense" ? -amount : amount;
-
-  const updated = await Transaction.findByIdAndUpdate(
-    req.params.id,
-    { text, amount: signedAmount, type, category },
-    { new: true }
-  );
-
-  res.json(updated);
-});
-
-// DELETE
-router.delete("/:id", async (req, res) => {
-  await Transaction.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+/* DELETE */
+router.delete("/:id", auth, async (req, res) => {
+  await Transaction.deleteOne({ _id: req.params.id, user: req.user.id });
+  res.json({ message: "Deleted" });
 });
 
 module.exports = router;

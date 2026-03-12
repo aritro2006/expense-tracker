@@ -1,198 +1,162 @@
-const API_URL = "https://expense-tracker-shck.onrender.com/api/transactions";
+const API = "https://expense-tracker-shck.onrender.com/api";
+
+let token = localStorage.getItem("token");
 
 const balanceEl = document.getElementById("balance");
 const incomeEl = document.getElementById("income");
 const expenseEl = document.getElementById("expense");
 const list = document.getElementById("transaction-list");
+
 const form = document.getElementById("transaction-form");
 
-const text = document.getElementById("text");
-const amount = document.getElementById("amount");
-const type = document.getElementById("type");
-const category = document.getElementById("category");
-
-const monthFilter = document.getElementById("monthFilter");
-const yearFilter = document.getElementById("yearFilter");
-const themeSwitch = document.getElementById("themeSwitch");
-
-let transactions = [];
-let editId = null;
-let chart;
-
-/* ---------- THEME ---------- */
-if (localStorage.getItem("theme") === "dark") {
-  document.body.classList.add("dark");
-  themeSwitch.checked = true;
+if (token) {
+document.getElementById("auth-section").style.display = "none";
+document.getElementById("app-section").style.display = "block";
+loadTransactions();
 }
 
-themeSwitch.addEventListener("change", () => {
-  document.body.classList.toggle("dark");
-  localStorage.setItem(
-    "theme",
-    document.body.classList.contains("dark") ? "dark" : "light"
-  );
+/* ================= AUTH ================= */
+
+async function register(){
+
+const username = document.getElementById("regUsername").value;
+const email = document.getElementById("regEmail").value;
+const password = document.getElementById("regPassword").value;
+
+const res = await fetch(`${API}/auth/register`,{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({username,email,password})
 });
 
-/* ---------- FETCH TRANSACTIONS FROM BACKEND ---------- */
-async function fetchTransactions() {
-  try {
-    const res = await fetch(API_URL);
-    transactions = await res.json();
-    init();
-  } catch (err) {
-    console.error("Error fetching transactions:", err);
-  }
+const data = await res.json();
+
+if(data.token){
+localStorage.setItem("token",data.token);
+location.reload();
+}else{
+alert(data.message);
 }
 
-/* ---------- ADD / EDIT ---------- */
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+}
 
-  const desc = text.value.trim();
-  const val = Number(amount.value);
-  if (!desc || isNaN(val) || val === 0) return;
+async function login(){
 
-  const signedAmount =
-    type.value === "expense" ? -Math.abs(val) : Math.abs(val);
+const email = document.getElementById("loginEmail").value;
+const password = document.getElementById("loginPassword").value;
 
-  try {
-    if (editId) {
-      await fetch(`${API_URL}/${editId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: desc,
-          amount: signedAmount,
-          category: category.value,
-        }),
-      });
-      editId = null;
-    } else {
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: desc,
-          amount: signedAmount,
-          category: category.value,
-        }),
-      });
-    }
-
-    form.reset();
-    fetchTransactions();
-  } catch (err) {
-    console.error("Error saving transaction:", err);
-  }
+const res = await fetch(`${API}/auth/login`,{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({email,password})
 });
 
-/* ---------- DELETE ---------- */
-async function deleteTransaction(id) {
-  try {
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    fetchTransactions();
-  } catch (err) {
-    console.error("Error deleting transaction:", err);
-  }
+const data = await res.json();
+
+if(data.token){
+localStorage.setItem("token",data.token);
+location.reload();
+}else{
+alert(data.message);
 }
 
-/* ---------- EDIT ---------- */
-function editTransaction(t) {
-  text.value = t.text;
-  amount.value = Math.abs(t.amount);
-  type.value = t.amount < 0 ? "expense" : "income";
-  category.value = t.category;
-  editId = t._id;
 }
 
-/* ---------- FILTER ---------- */
-function getFilteredTransactions() {
-  return transactions.filter((t) => {
-    const d = new Date(t.createdAt || t._id);
-    const m =
-      monthFilter.value === "" ||
-      d.getMonth() == monthFilter.value;
-    const y =
-      yearFilter.value === "" ||
-      d.getFullYear() == yearFilter.value;
-    return m && y;
-  });
+function logout(){
+localStorage.removeItem("token");
+location.reload();
 }
 
-/* ---------- UI ---------- */
-function init() {
-  list.innerHTML = "";
+/* ================= TRANSACTIONS ================= */
 
-  const filtered = getFilteredTransactions();
-  let income = 0,
-    expense = 0;
+async function loadTransactions(){
 
-  filtered.forEach((t) => {
-    const li = document.createElement("li");
-    li.className = t.amount < 0 ? "minus" : "plus";
+const res = await fetch(`${API}/transactions`,{
+headers:{
+Authorization:`Bearer ${token}`
+}
+});
 
-    li.innerHTML = `
-      ${t.text} (${t.category})
-      <span>₹${Math.abs(t.amount)}</span>
-      <div class="actions">
-        <button onclick='editTransaction(${JSON.stringify(t)})'>✏️</button>
-        <button onclick='deleteTransaction("${t._id}")'>❌</button>
-      </div>
-    `;
+const transactions = await res.json();
 
-    list.appendChild(li);
+renderTransactions(transactions);
 
-    t.amount > 0 ? (income += t.amount) : (expense += t.amount);
-  });
-
-  balanceEl.innerText = `₹${income + expense}`;
-  incomeEl.innerText = `₹${income}`;
-  expenseEl.innerText = `₹${Math.abs(expense)}`;
-
-  populateYears();
-  renderChart(income, Math.abs(expense));
 }
 
-/* ---------- YEARS ---------- */
-function populateYears() {
-  const years = [
-    ...new Set(
-      transactions.map((t) =>
-        new Date(t.createdAt || t._id).getFullYear()
-      )
-    ),
-  ];
+async function addTransaction(text,amount,category){
 
-  yearFilter.innerHTML = `<option value="">All Years</option>`;
-  years.forEach((y) => {
-    const opt = document.createElement("option");
-    opt.value = y;
-    opt.textContent = y;
-    yearFilter.appendChild(opt);
-  });
+await fetch(`${API}/transactions`,{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+Authorization:`Bearer ${token}`
+},
+body:JSON.stringify({text,amount,category})
+});
+
+loadTransactions();
+
 }
 
-/* ---------- CHART ---------- */
-function renderChart(income, expense) {
-  const ctx = document.getElementById("expenseChart");
-  if (chart) chart.destroy();
+async function deleteTransaction(id){
 
-  chart = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: ["Income", "Expense"],
-      datasets: [
-        {
-          data: [income, expense],
-          backgroundColor: ["#2e7d32", "#c62828"],
-        },
-      ],
-    },
-  });
+await fetch(`${API}/transactions/${id}`,{
+method:"DELETE",
+headers:{
+Authorization:`Bearer ${token}`
+}
+});
+
+loadTransactions();
+
 }
 
-monthFilter.addEventListener("change", init);
-yearFilter.addEventListener("change", init);
+/* ================= UI ================= */
 
-/* ---------- INITIAL LOAD ---------- */
-fetchTransactions();
+function renderTransactions(transactions){
+
+list.innerHTML="";
+
+let income = 0;
+let expense = 0;
+
+transactions.forEach(t=>{
+
+const li = document.createElement("li");
+
+li.innerHTML = `
+${t.text} (${t.category}) ₹${t.amount}
+<button onclick="deleteTransaction('${t._id}')">❌</button>
+`;
+
+list.appendChild(li);
+
+if(t.amount>0){
+income += t.amount;
+}else{
+expense += t.amount;
+}
+
+});
+
+balanceEl.innerText = `₹${income + expense}`;
+incomeEl.innerText = income;
+expenseEl.innerText = Math.abs(expense);
+
+}
+
+/* ================= FORM ================= */
+
+form.addEventListener("submit",e=>{
+
+e.preventDefault();
+
+const text = document.getElementById("text").value;
+const amount = Number(document.getElementById("amount").value);
+const category = document.getElementById("category").value;
+
+addTransaction(text,amount,category);
+
+form.reset();
+
+});
