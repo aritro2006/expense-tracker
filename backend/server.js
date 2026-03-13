@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const aiRoutes = require('./routes/ai');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
@@ -12,6 +13,7 @@ app.use(express.json());
 app.get('/', (req, res) => res.send('Expense Tracker API Running'));
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/ai', aiRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))

@@ -331,3 +331,82 @@ window.addEventListener('DOMContentLoaded', () => {
     showDashboard();
   }
 });
+// ===== AI ASSISTANT =====
+async function analyzeFinances() {
+  const btn = document.querySelector('.btn-analyze');
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Analyzing...';
+  btn.disabled = true;
+  addAIMessage('Analyze my finances, identify spending patterns, and give me 3-5 specific actionable suggestions to improve my financial health.', 'user');
+  showTyping();
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/ai/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': token },
+      body: JSON.stringify({ message: 'Analyze my finances and give specific suggestions.' })
+    });
+    const data = await res.json();
+    removeTyping();
+    addAIMessage(data.reply, 'bot');
+  } catch {
+    removeTyping();
+    addAIMessage('Sorry, AI analysis failed. Please try again.', 'bot');
+  }
+  btn.innerHTML = '<i class="fa fa-chart-line"></i> Analyze My Finances';
+  btn.disabled = false;
+}
+
+async function sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = '';
+  addAIMessage(message, 'user');
+  showTyping();
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/ai/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': token },
+      body: JSON.stringify({ message })
+    });
+    const data = await res.json();
+    removeTyping();
+    addAIMessage(data.reply, 'bot');
+  } catch {
+    removeTyping();
+    addAIMessage('Sorry, something went wrong. Try again.', 'bot');
+  }
+}
+
+function addAIMessage(text, sender) {
+  const window = document.getElementById('ai-chat-window');
+  const welcome = window.querySelector('.ai-welcome-msg');
+  if (welcome) welcome.remove();
+  const icon = sender === 'bot' ? '<i class="fa-solid fa-robot"></i>' : '<i class="fa fa-user"></i>';
+  const div = document.createElement('div');
+  div.className = `ai-msg ${sender}`;
+  div.innerHTML = `
+    <div class="ai-msg-avatar">${icon}</div>
+    <div class="ai-msg-bubble">${text}</div>`;
+  window.appendChild(div);
+  window.scrollTop = window.scrollHeight;
+}
+
+function showTyping() {
+  const window = document.getElementById('ai-chat-window');
+  const div = document.createElement('div');
+  div.className = 'ai-typing'; div.id = 'typing-indicator';
+  div.innerHTML = `
+    <div class="ai-msg-avatar" style="background:rgba(124,58,237,0.2);color:var(--accent2);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+      <i class="fa-solid fa-robot"></i>
+    </div>
+    <div class="ai-typing-dots"><span></span><span></span><span></span></div>`;
+  window.appendChild(div);
+  window.scrollTop = window.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}

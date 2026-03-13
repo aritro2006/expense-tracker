@@ -85,7 +85,42 @@
           <small>Personal Account</small>
         </div>
         <button onclick="logout()" title="Logout"><i class="fa fa-sign-out-alt"></i></button>
+    <!-- AI ASSISTANT SECTION -->
+<div class="ai-section">
+  <div class="ai-header">
+    <div class="ai-title">
+      <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
+      <div>
+        <h3>AI Finance Assistant</h3>
+        <p>Powered by LLaMA 3.1</p>
       </div>
+    </div>
+    <button class="btn-analyze" onclick="analyzeFinances()">
+      <i class="fa fa-chart-line"></i> Analyze My Finances
+    </button>
+  </div>
+
+  <!-- Chat Window -->
+  <div class="ai-chat-window" id="ai-chat-window">
+    <div class="ai-welcome-msg">
+      <i class="fa-solid fa-robot"></i>
+      <p>Hi! I'm your AI Finance Assistant. Click <strong>"Analyze My Finances"</strong> for a full report, or ask me anything below!</p>
+    </div>
+  </div>
+
+  <!-- Chat Input -->
+  <div class="ai-input-row">
+    <div class="input-group ai-input">
+      <i class="fa fa-message"></i>
+      <input type="text" id="ai-input" placeholder='Ask me anything... e.g. "How much did I spend this week?"' onkeydown="if(event.key==='Enter') sendAIMessage()" />
+    </div>
+    <button class="btn-send" onclick="sendAIMessage()">
+      <i class="fa fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+  
+    </div>
     </aside>
 
     <!-- Main Content -->
