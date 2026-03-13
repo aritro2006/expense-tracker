@@ -1,70 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expense Tracker</title>
-
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExpenseTracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
-
 <body>
 
-<h1>Expense Tracker 💰</h1>
+  <!-- AUTH SECTION -->
+  <div id="auth-section">
+    <div class="auth-bg">
+      <div class="blob blob1"></div>
+      <div class="blob blob2"></div>
+      <div class="blob blob3"></div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-logo">
+        <i class="fa-solid fa-wallet"></i>
+        <span>ExpenseTracker</span>
+      </div>
+      <div class="auth-tabs">
+        <button class="tab-btn active" id="loginTabBtn" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" id="registerTabBtn" onclick="switchTab('register')">Register</button>
+      </div>
 
-<!-- AUTH SECTION -->
-<div id="auth-section">
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form" onsubmit="loginUser(event)">
+        <div class="input-group">
+          <i class="fa fa-envelope"></i>
+          <input type="email" id="login-email" placeholder="Email address" required />
+        </div>
+        <div class="input-group">
+          <i class="fa fa-lock"></i>
+          <input type="password" id="login-password" placeholder="Password" required />
+        </div>
+        <button type="submit" class="btn-primary">
+          <span>Login</span><i class="fa fa-arrow-right"></i>
+        </button>
+        <p id="login-msg" class="auth-msg"></p>
+      </form>
 
-<h2>Login</h2>
-<input id="loginEmail" placeholder="Email">
-<input id="loginPassword" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form hidden" onsubmit="registerUser(event)">
+        <div class="input-group">
+          <i class="fa fa-user"></i>
+          <input type="text" id="reg-name" placeholder="Full name" required />
+        </div>
+        <div class="input-group">
+          <i class="fa fa-envelope"></i>
+          <input type="email" id="reg-email" placeholder="Email address" required />
+        </div>
+        <div class="input-group">
+          <i class="fa fa-lock"></i>
+          <input type="password" id="reg-password" placeholder="Password (min 6 chars)" required />
+        </div>
+        <button type="submit" class="btn-primary">
+          <span>Create Account</span><i class="fa fa-arrow-right"></i>
+        </button>
+        <p id="register-msg" class="auth-msg"></p>
+      </form>
+    </div>
+  </div>
 
-<h2>Register</h2>
-<input id="regUsername" placeholder="Username">
-<input id="regEmail" placeholder="Email">
-<input id="regPassword" type="password" placeholder="Password">
-<button onclick="register()">Register</button>
+  <!-- DASHBOARD SECTION -->
+  <div id="dashboard-section" class="hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <i class="fa-solid fa-wallet"></i>
+        <span>ExpenseTracker</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active"><i class="fa fa-home"></i><span>Dashboard</span></a>
+        <a href="#" class="nav-item"><i class="fa fa-list"></i><span>Transactions</span></a>
+        <a href="#" class="nav-item"><i class="fa fa-chart-pie"></i><span>Analytics</span></a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-info">
+          <span id="user-name-display">User</span>
+          <small>Personal Account</small>
+        </div>
+        <button onclick="logout()" title="Logout"><i class="fa fa-sign-out-alt"></i></button>
+      </div>
+    </aside>
 
-</div>
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="topbar">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="greeting-text">Good evening 👋</p>
+        </div>
+        <button class="btn-add-top" onclick="openModal()">
+          <i class="fa fa-plus"></i> Add Transaction
+        </button>
+      </div>
 
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="card card-balance">
+          <div class="card-icon"><i class="fa fa-wallet"></i></div>
+          <div class="card-info">
+            <span>Total Balance</span>
+            <h2 id="total-balance">₹0.00</h2>
+          </div>
+        </div>
+        <div class="card card-income">
+          <div class="card-icon"><i class="fa fa-arrow-trend-up"></i></div>
+          <div class="card-info">
+            <span>Total Income</span>
+            <h2 id="total-income">₹0.00</h2>
+          </div>
+        </div>
+        <div class="card card-expense">
+          <div class="card-icon"><i class="fa fa-arrow-trend-down"></i></div>
+          <div class="card-info">
+            <span>Total Expenses</span>
+            <h2 id="total-expense">₹0.00</h2>
+          </div>
+        </div>
+        <div class="card card-count">
+          <div class="card-icon"><i class="fa fa-receipt"></i></div>
+          <div class="card-info">
+            <span>Transactions</span>
+            <h2 id="total-count">0</h2>
+          </div>
+        </div>
+      </div>
 
-<!-- APP SECTION -->
-<div id="app-section" style="display:none">
+      <!-- Chart + Recent -->
+      <div class="dashboard-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Income vs Expenses</h3>
+            <span class="badge">Overview</span>
+          </div>
+          <canvas id="barChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Spending Split</h3>
+            <span class="badge">Donut</span>
+          </div>
+          <canvas id="donutChart" height="200"></canvas>
+        </div>
+      </div>
 
-<button onclick="logout()">Logout</button>
+      <!-- Transaction List -->
+      <div class="transaction-card">
+        <div class="transaction-header">
+          <h3>Recent Transactions</h3>
+          <div class="filter-group">
+            <button class="filter-btn active" onclick="filterTransactions('all', this)">All</button>
+            <button class="filter-btn" onclick="filterTransactions('income', this)">Income</button>
+            <button class="filter-btn" onclick="filterTransactions('expense', this)">Expense</button>
+          </div>
+        </div>
+        <div id="transaction-list" class="transaction-list">
+          <div class="empty-state">
+            <i class="fa fa-inbox"></i>
+            <p>No transactions yet. Add one!</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
-<h2>Your Balance</h2>
-<h1 id="balance">₹0</h1>
+  <!-- ADD TRANSACTION MODAL -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModalOutside(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fa fa-plus-circle"></i> New Transaction</h3>
+        <button onclick="closeModal()"><i class="fa fa-times"></i></button>
+      </div>
+      <form onsubmit="addTransaction(event)">
+        <div class="modal-body">
+          <div class="type-toggle">
+            <button type="button" class="type-btn income-btn active" id="incomeBtn" onclick="setType('income')">
+              <i class="fa fa-arrow-up"></i> Income
+            </button>
+            <button type="button" class="type-btn expense-btn" id="expenseBtn" onclick="setType('expense')">
+              <i class="fa fa-arrow-down"></i> Expense
+            </button>
+          </div>
+          <div class="input-group modal-input">
+            <i class="fa fa-tag"></i>
+            <input type="text" id="t-text" placeholder="Description (e.g. Salary, Groceries)" required />
+          </div>
+          <div class="input-group modal-input">
+            <i class="fa fa-indian-rupee-sign"></i>
+            <input type="number" id="t-amount" placeholder="Amount" min="1" required />
+          </div>
+          <input type="hidden" id="t-type" value="income" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Add Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-<div>
-<p>Income: ₹<span id="income">0</span></p>
-<p>Expense: ₹<span id="expense">0</span></p>
-</div>
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
 
-<canvas id="expenseChart"></canvas>
-
-<h2>Transactions</h2>
-<ul id="transaction-list"></ul>
-
-<h2>Add Transaction</h2>
-
-<form id="transaction-form">
-
-<input id="text" placeholder="Description" required>
-
-<input id="amount" type="number" placeholder="Amount" required>
-
-<input id="category" placeholder="Category">
-
-<button type="submit">Add Transaction</button>
-
-</form>
-
-</div>
-
-<script src="script.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
