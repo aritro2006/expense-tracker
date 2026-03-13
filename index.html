@@ -59,7 +59,6 @@
 
   <!-- DASHBOARD SECTION -->
   <div id="dashboard-section" class="hidden">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
         <i class="fa-solid fa-wallet"></i>
@@ -79,7 +78,6 @@
       </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
       <div class="topbar">
         <div>
@@ -87,16 +85,28 @@
           <p id="greeting-text">Good evening 👋</p>
         </div>
         <div class="topbar-right">
-          <button class="btn-add-top" onclick="openModal()">
-            <i class="fa fa-plus"></i> Add Transaction
-          </button>
-          <button class="btn-logout" onclick="logout()">
-            <i class="fa fa-sign-out-alt"></i> Logout
-          </button>
+          <button class="btn-add-top" onclick="openModal()"><i class="fa fa-plus"></i> Add Transaction</button>
+          <button class="btn-logout" onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
         </div>
       </div>
 
-      <!-- Summary Cards -->
+      <!-- AI STRIP -->
+      <div class="ai-strip" id="ai-strip">
+        <div class="ai-strip-item">
+          <i class="fa fa-calendar-week"></i>
+          <span id="weekly-summary-text">Loading weekly summary...</span>
+        </div>
+        <div class="ai-strip-divider"></div>
+        <div class="ai-strip-item">
+          <i class="fa fa-lightbulb"></i>
+          <span id="daily-tip-text">Loading daily tip...</span>
+        </div>
+      </div>
+
+      <!-- SMART ALERTS -->
+      <div id="alerts-container" class="alerts-container"></div>
+
+      <!-- SUMMARY CARDS -->
       <div class="summary-cards">
         <div class="card card-balance">
           <div class="card-icon"><i class="fa fa-wallet"></i></div>
@@ -116,7 +126,7 @@
         </div>
       </div>
 
-      <!-- Charts -->
+      <!-- CHARTS -->
       <div class="dashboard-grid">
         <div class="chart-card">
           <div class="chart-card-header"><h3>Income vs Expenses</h3><span class="badge">Overview</span></div>
@@ -128,7 +138,7 @@
         </div>
       </div>
 
-      <!-- Transaction List -->
+      <!-- TRANSACTION LIST -->
       <div class="transaction-card">
         <div class="transaction-header">
           <h3>Recent Transactions</h3>
@@ -154,13 +164,19 @@
       </div>
       <form onsubmit="addTransaction(event)">
         <div class="modal-body">
+          <div class="smart-input-row">
+            <div class="input-group smart-input-field">
+              <i class="fa fa-magic"></i>
+              <input type="text" id="smart-input" placeholder='Try: "spent 200 on lunch today"' />
+            </div>
+            <button type="button" class="btn-smart" onclick="parseSmartInput()" title="Let AI fill the form">
+              <i class="fa fa-wand-magic-sparkles"></i>
+            </button>
+          </div>
+          <div class="smart-divider"><span>or fill manually</span></div>
           <div class="type-toggle">
-            <button type="button" class="type-btn income-btn active" id="incomeBtn" onclick="setType('income')">
-              <i class="fa fa-arrow-up"></i> Income
-            </button>
-            <button type="button" class="type-btn expense-btn" id="expenseBtn" onclick="setType('expense')">
-              <i class="fa fa-arrow-down"></i> Expense
-            </button>
+            <button type="button" class="type-btn income-btn active" id="incomeBtn" onclick="setType('income')"><i class="fa fa-arrow-up"></i> Income</button>
+            <button type="button" class="type-btn expense-btn" id="expenseBtn" onclick="setType('expense')"><i class="fa fa-arrow-down"></i> Expense</button>
           </div>
           <div class="input-group modal-input">
             <i class="fa fa-tag"></i>
@@ -170,6 +186,7 @@
             <i class="fa fa-indian-rupee-sign"></i>
             <input type="number" id="t-amount" placeholder="Amount" min="1" required />
           </div>
+          <div id="category-display" class="category-badge hidden"></div>
           <input type="hidden" id="t-type" value="income" />
         </div>
         <div class="modal-footer">
@@ -191,22 +208,23 @@
     <div class="ai-panel-header">
       <div class="ai-title">
         <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
-        <div>
-          <h3>AI Finance Assistant</h3>
-          <p>Powered by LLaMA 3.1</p>
-        </div>
+        <div><h3>AI Finance Assistant</h3><p>Powered by LLaMA 3.1</p></div>
       </div>
       <div class="ai-panel-actions">
-        <button class="btn-analyze-small" onclick="analyzeFinances()">
-          <i class="fa fa-chart-line"></i> Analyze
-        </button>
+        <button class="btn-analyze-small" onclick="analyzeFinances()"><i class="fa fa-chart-line"></i> Analyze</button>
+        <button class="btn-analyze-small" onclick="generateMonthlyReport()"><i class="fa fa-file-alt"></i> Report</button>
+        <button class="btn-analyze-small" onclick="getPrediction()"><i class="fa fa-brain"></i> Predict</button>
         <button class="ai-close-btn" onclick="toggleAIChat()"><i class="fa fa-times"></i></button>
       </div>
     </div>
     <div class="ai-chat-window" id="ai-chat-window">
       <div class="ai-welcome-msg">
         <i class="fa-solid fa-robot"></i>
-        <p>Hi! I'm your AI Finance Assistant. Click <strong>"Analyze"</strong> for a full report, or ask me anything below!</p>
+        <p>Hi! I'm your AI Finance Assistant.<br/>
+        <strong>Analyze</strong> — spending insights<br/>
+        <strong>Report</strong> — monthly report<br/>
+        <strong>Predict</strong> — next month forecast<br/>
+        Or just ask me anything below!</p>
       </div>
     </div>
     <div class="ai-input-row">
@@ -218,7 +236,7 @@
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- TOAST -->
   <div id="toast" class="toast hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
