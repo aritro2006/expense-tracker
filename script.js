@@ -1,4 +1,4 @@
-const API_URL = 'https://expense-tracker-shck.onrender.com';
+const API_URL = 'https://expense-tracker-shck.onrender.com/api';
 // ↑ Replace with your actual Render URL after deploying
 
 let allTransactions = [];
