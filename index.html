@@ -26,8 +26,6 @@
         <button class="tab-btn active" id="loginTabBtn" onclick="switchTab('login')">Login</button>
         <button class="tab-btn" id="registerTabBtn" onclick="switchTab('register')">Register</button>
       </div>
-
-      <!-- Login Form -->
       <form id="login-form" class="auth-form" onsubmit="loginUser(event)">
         <div class="input-group">
           <i class="fa fa-envelope"></i>
@@ -37,13 +35,9 @@
           <i class="fa fa-lock"></i>
           <input type="password" id="login-password" placeholder="Password" required />
         </div>
-        <button type="submit" class="btn-primary">
-          <span>Login</span><i class="fa fa-arrow-right"></i>
-        </button>
+        <button type="submit" class="btn-primary"><span>Login</span><i class="fa fa-arrow-right"></i></button>
         <p id="login-msg" class="auth-msg"></p>
       </form>
-
-      <!-- Register Form -->
       <form id="register-form" class="auth-form hidden" onsubmit="registerUser(event)">
         <div class="input-group">
           <i class="fa fa-user"></i>
@@ -57,9 +51,7 @@
           <i class="fa fa-lock"></i>
           <input type="password" id="reg-password" placeholder="Password (min 6 chars)" required />
         </div>
-        <button type="submit" class="btn-primary">
-          <span>Create Account</span><i class="fa fa-arrow-right"></i>
-        </button>
+        <button type="submit" class="btn-primary"><span>Create Account</span><i class="fa fa-arrow-right"></i></button>
         <p id="register-msg" class="auth-msg"></p>
       </form>
     </div>
@@ -84,43 +76,7 @@
           <span id="user-name-display">User</span>
           <small>Personal Account</small>
         </div>
-        <button onclick="logout()" title="Logout"><i class="fa fa-sign-out-alt"></i></button>
-    <!-- AI ASSISTANT SECTION -->
-<div class="ai-section">
-  <div class="ai-header">
-    <div class="ai-title">
-      <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
-      <div>
-        <h3>AI Finance Assistant</h3>
-        <p>Powered by LLaMA 3.1</p>
       </div>
-    </div>
-    <button class="btn-analyze" onclick="analyzeFinances()">
-      <i class="fa fa-chart-line"></i> Analyze My Finances
-    </button>
-  </div>
-
-  <!-- Chat Window -->
-  <div class="ai-chat-window" id="ai-chat-window">
-    <div class="ai-welcome-msg">
-      <i class="fa-solid fa-robot"></i>
-      <p>Hi! I'm your AI Finance Assistant. Click <strong>"Analyze My Finances"</strong> for a full report, or ask me anything below!</p>
-    </div>
-  </div>
-
-  <!-- Chat Input -->
-  <div class="ai-input-row">
-    <div class="input-group ai-input">
-      <i class="fa fa-message"></i>
-      <input type="text" id="ai-input" placeholder='Ask me anything... e.g. "How much did I spend this week?"' onkeydown="if(event.key==='Enter') sendAIMessage()" />
-    </div>
-    <button class="btn-send" onclick="sendAIMessage()">
-      <i class="fa fa-paper-plane"></i>
-    </button>
-  </div>
-</div>
-  
-    </div>
     </aside>
 
     <!-- Main Content -->
@@ -130,57 +86,44 @@
           <h1>Dashboard</h1>
           <p id="greeting-text">Good evening 👋</p>
         </div>
-        <button class="btn-add-top" onclick="openModal()">
-          <i class="fa fa-plus"></i> Add Transaction
-        </button>
+        <div class="topbar-right">
+          <button class="btn-add-top" onclick="openModal()">
+            <i class="fa fa-plus"></i> Add Transaction
+          </button>
+          <button class="btn-logout" onclick="logout()">
+            <i class="fa fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
       </div>
 
       <!-- Summary Cards -->
       <div class="summary-cards">
         <div class="card card-balance">
           <div class="card-icon"><i class="fa fa-wallet"></i></div>
-          <div class="card-info">
-            <span>Total Balance</span>
-            <h2 id="total-balance">₹0.00</h2>
-          </div>
+          <div class="card-info"><span>Total Balance</span><h2 id="total-balance">₹0.00</h2></div>
         </div>
         <div class="card card-income">
           <div class="card-icon"><i class="fa fa-arrow-trend-up"></i></div>
-          <div class="card-info">
-            <span>Total Income</span>
-            <h2 id="total-income">₹0.00</h2>
-          </div>
+          <div class="card-info"><span>Total Income</span><h2 id="total-income">₹0.00</h2></div>
         </div>
         <div class="card card-expense">
           <div class="card-icon"><i class="fa fa-arrow-trend-down"></i></div>
-          <div class="card-info">
-            <span>Total Expenses</span>
-            <h2 id="total-expense">₹0.00</h2>
-          </div>
+          <div class="card-info"><span>Total Expenses</span><h2 id="total-expense">₹0.00</h2></div>
         </div>
         <div class="card card-count">
           <div class="card-icon"><i class="fa fa-receipt"></i></div>
-          <div class="card-info">
-            <span>Transactions</span>
-            <h2 id="total-count">0</h2>
-          </div>
+          <div class="card-info"><span>Transactions</span><h2 id="total-count">0</h2></div>
         </div>
       </div>
 
-      <!-- Chart + Recent -->
+      <!-- Charts -->
       <div class="dashboard-grid">
         <div class="chart-card">
-          <div class="chart-card-header">
-            <h3>Income vs Expenses</h3>
-            <span class="badge">Overview</span>
-          </div>
+          <div class="chart-card-header"><h3>Income vs Expenses</h3><span class="badge">Overview</span></div>
           <canvas id="barChart" height="200"></canvas>
         </div>
         <div class="chart-card">
-          <div class="chart-card-header">
-            <h3>Spending Split</h3>
-            <span class="badge">Donut</span>
-          </div>
+          <div class="chart-card-header"><h3>Spending Split</h3><span class="badge">Donut</span></div>
           <canvas id="donutChart" height="200"></canvas>
         </div>
       </div>
@@ -196,10 +139,7 @@
           </div>
         </div>
         <div id="transaction-list" class="transaction-list">
-          <div class="empty-state">
-            <i class="fa fa-inbox"></i>
-            <p>No transactions yet. Add one!</p>
-          </div>
+          <div class="empty-state"><i class="fa fa-inbox"></i><p>No transactions yet. Add one!</p></div>
         </div>
       </div>
     </main>
@@ -240,7 +180,45 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
+  <!-- FLOATING AI BUBBLE -->
+  <div class="ai-fab" id="ai-fab" onclick="toggleAIChat()">
+    <i class="fa-solid fa-robot" id="ai-fab-icon"></i>
+    <div class="ai-fab-pulse"></div>
+  </div>
+
+  <!-- FLOATING AI CHAT PANEL -->
+  <div class="ai-chat-panel hidden" id="ai-chat-panel">
+    <div class="ai-panel-header">
+      <div class="ai-title">
+        <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
+        <div>
+          <h3>AI Finance Assistant</h3>
+          <p>Powered by LLaMA 3.1</p>
+        </div>
+      </div>
+      <div class="ai-panel-actions">
+        <button class="btn-analyze-small" onclick="analyzeFinances()">
+          <i class="fa fa-chart-line"></i> Analyze
+        </button>
+        <button class="ai-close-btn" onclick="toggleAIChat()"><i class="fa fa-times"></i></button>
+      </div>
+    </div>
+    <div class="ai-chat-window" id="ai-chat-window">
+      <div class="ai-welcome-msg">
+        <i class="fa-solid fa-robot"></i>
+        <p>Hi! I'm your AI Finance Assistant. Click <strong>"Analyze"</strong> for a full report, or ask me anything below!</p>
+      </div>
+    </div>
+    <div class="ai-input-row">
+      <div class="input-group ai-input">
+        <i class="fa fa-message"></i>
+        <input type="text" id="ai-input" placeholder="Ask anything about your finances..." onkeydown="if(event.key==='Enter') sendAIMessage()" />
+      </div>
+      <button class="btn-send" onclick="sendAIMessage()"><i class="fa fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
