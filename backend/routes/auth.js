@@ -1,87 +1,27 @@
-const express = require("express");
-const router = express.Router();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
-const User = require("../models/User");
+const TransactionSchema = new mongoose.Schema({
 
-router.post("/register", async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
+user:{
+type:mongoose.Schema.Types.ObjectId,
+ref:"User"
+},
 
-        let user = await User.findOne({ email });
+text:{
+type:String,
+required:true
+},
 
-        if (user) {
-            return res.status(400).json({ message: "User already exists" });
-        }
+amount:{
+type:Number,
+required:true
+},
 
-        user = new User({
-            name,
-            email,
-            password
-        });
+date:{
+type:Date,
+default:Date.now
+}
 
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
-
-        await user.save();
-
-        const payload = {
-            user: {
-                id: user.id
-            }
-        };
-
-        jwt.sign(
-            payload,
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" },
-            (err, token) => {
-                if (err) throw err;
-                res.json({ token });
-            }
-        );
-
-    } catch (err) {
-        res.status(500).send("Server error");
-    }
 });
 
-router.post("/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        const payload = {
-            user: {
-                id: user.id
-            }
-        };
-
-        jwt.sign(
-            payload,
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" },
-            (err, token) => {
-                if (err) throw err;
-                res.json({ token });
-            }
-        );
-
-    } catch (err) {
-        res.status(500).send("Server error");
-    }
-});
-
-module.exports = router;
+module.exports = mongoose.model("Transaction",TransactionSchema);
