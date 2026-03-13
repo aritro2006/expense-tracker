@@ -65,9 +65,10 @@
         <span>ExpenseTracker</span>
       </div>
       <nav class="sidebar-nav">
-        <a href="#" class="nav-item active"><i class="fa fa-home"></i><span>Dashboard</span></a>
-        <a href="#" class="nav-item"><i class="fa fa-list"></i><span>Transactions</span></a>
-        <a href="#" class="nav-item"><i class="fa fa-chart-pie"></i><span>Analytics</span></a>
+        <a href="#" class="nav-item active" onclick="showSection('dashboard', this)"><i class="fa fa-home"></i><span>Dashboard</span></a>
+        <a href="#" class="nav-item" onclick="showSection('transactions', this)"><i class="fa fa-list"></i><span>Transactions</span></a>
+        <a href="#" class="nav-item" onclick="showSection('budget', this)"><i class="fa fa-bullseye"></i><span>Budgets</span></a>
+        <a href="#" class="nav-item" onclick="showSection('analytics', this)"><i class="fa fa-chart-pie"></i><span>Analytics</span></a>
       </nav>
       <div class="sidebar-user">
         <div class="user-avatar" id="user-avatar">A</div>
@@ -81,75 +82,117 @@
     <main class="main-content">
       <div class="topbar">
         <div>
-          <h1>Dashboard</h1>
+          <h1 id="page-title">Dashboard</h1>
           <p id="greeting-text">Good evening 👋</p>
         </div>
         <div class="topbar-right">
+          <button class="btn-export" onclick="exportCSV()"><i class="fa fa-download"></i> Export CSV</button>
           <button class="btn-add-top" onclick="openModal()"><i class="fa fa-plus"></i> Add Transaction</button>
           <button class="btn-logout" onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
         </div>
       </div>
 
-      <!-- AI STRIP -->
-      <div class="ai-strip" id="ai-strip">
-        <div class="ai-strip-item">
-          <i class="fa fa-calendar-week"></i>
-          <span id="weekly-summary-text">Loading weekly summary...</span>
-        </div>
-        <div class="ai-strip-divider"></div>
-        <div class="ai-strip-item">
-          <i class="fa fa-lightbulb"></i>
-          <span id="daily-tip-text">Loading daily tip...</span>
-        </div>
-      </div>
-
-      <!-- SMART ALERTS -->
-      <div id="alerts-container" class="alerts-container"></div>
-
-      <!-- SUMMARY CARDS -->
-      <div class="summary-cards">
-        <div class="card card-balance">
-          <div class="card-icon"><i class="fa fa-wallet"></i></div>
-          <div class="card-info"><span>Total Balance</span><h2 id="total-balance">₹0.00</h2></div>
-        </div>
-        <div class="card card-income">
-          <div class="card-icon"><i class="fa fa-arrow-trend-up"></i></div>
-          <div class="card-info"><span>Total Income</span><h2 id="total-income">₹0.00</h2></div>
-        </div>
-        <div class="card card-expense">
-          <div class="card-icon"><i class="fa fa-arrow-trend-down"></i></div>
-          <div class="card-info"><span>Total Expenses</span><h2 id="total-expense">₹0.00</h2></div>
-        </div>
-        <div class="card card-count">
-          <div class="card-icon"><i class="fa fa-receipt"></i></div>
-          <div class="card-info"><span>Transactions</span><h2 id="total-count">0</h2></div>
-        </div>
-      </div>
-
-      <!-- CHARTS -->
-      <div class="dashboard-grid">
-        <div class="chart-card">
-          <div class="chart-card-header"><h3>Income vs Expenses</h3><span class="badge">Overview</span></div>
-          <canvas id="barChart" height="200"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-header"><h3>Spending Split</h3><span class="badge">Donut</span></div>
-          <canvas id="donutChart" height="200"></canvas>
-        </div>
-      </div>
-
-      <!-- TRANSACTION LIST -->
-      <div class="transaction-card">
-        <div class="transaction-header">
-          <h3>Recent Transactions</h3>
-          <div class="filter-group">
-            <button class="filter-btn active" onclick="filterTransactions('all', this)">All</button>
-            <button class="filter-btn" onclick="filterTransactions('income', this)">Income</button>
-            <button class="filter-btn" onclick="filterTransactions('expense', this)">Expense</button>
+      <!-- DASHBOARD VIEW -->
+      <div id="view-dashboard">
+        <div class="ai-strip">
+          <div class="ai-strip-item">
+            <i class="fa fa-calendar-week"></i>
+            <span id="weekly-summary-text">Loading weekly summary...</span>
+          </div>
+          <div class="ai-strip-divider"></div>
+          <div class="ai-strip-item">
+            <i class="fa fa-lightbulb"></i>
+            <span id="daily-tip-text">Loading daily tip...</span>
           </div>
         </div>
-        <div id="transaction-list" class="transaction-list">
-          <div class="empty-state"><i class="fa fa-inbox"></i><p>No transactions yet. Add one!</p></div>
+        <div id="alerts-container" class="alerts-container"></div>
+        <div class="summary-cards">
+          <div class="card card-balance">
+            <div class="card-icon"><i class="fa fa-wallet"></i></div>
+            <div class="card-info"><span>Total Balance</span><h2 id="total-balance">₹0.00</h2></div>
+          </div>
+          <div class="card card-income">
+            <div class="card-icon"><i class="fa fa-arrow-trend-up"></i></div>
+            <div class="card-info"><span>Total Income</span><h2 id="total-income">₹0.00</h2></div>
+          </div>
+          <div class="card card-expense">
+            <div class="card-icon"><i class="fa fa-arrow-trend-down"></i></div>
+            <div class="card-info"><span>Total Expenses</span><h2 id="total-expense">₹0.00</h2></div>
+          </div>
+          <div class="card card-count">
+            <div class="card-icon"><i class="fa fa-receipt"></i></div>
+            <div class="card-info"><span>Transactions</span><h2 id="total-count">0</h2></div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <div class="chart-card-header"><h3>Income vs Expenses</h3><span class="badge">Overview</span></div>
+            <canvas id="barChart" height="200"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><h3>Spending Split</h3><span class="badge">Donut</span></div>
+            <canvas id="donutChart" height="200"></canvas>
+          </div>
+        </div>
+        <div class="transaction-card">
+          <div class="transaction-header">
+            <h3>Recent Transactions</h3>
+            <div class="filter-group">
+              <button class="filter-btn active" onclick="filterTransactions('all', this)">All</button>
+              <button class="filter-btn" onclick="filterTransactions('income', this)">Income</button>
+              <button class="filter-btn" onclick="filterTransactions('expense', this)">Expense</button>
+            </div>
+          </div>
+          <div id="transaction-list" class="transaction-list">
+            <div class="empty-state"><i class="fa fa-inbox"></i><p>No transactions yet. Add one!</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS VIEW -->
+      <div id="view-transactions" class="hidden">
+        <div class="transaction-card">
+          <div class="transaction-header">
+            <h3>All Transactions</h3>
+            <div class="filter-group">
+              <button class="filter-btn active" onclick="filterTransactions('all', this)">All</button>
+              <button class="filter-btn" onclick="filterTransactions('income', this)">Income</button>
+              <button class="filter-btn" onclick="filterTransactions('expense', this)">Expense</button>
+            </div>
+          </div>
+          <div id="transaction-list-full" class="transaction-list">
+            <div class="empty-state"><i class="fa fa-inbox"></i><p>No transactions yet.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUDGET VIEW -->
+      <div id="view-budget" class="hidden">
+        <div class="budget-header-row">
+          <h3>Monthly Budgets</h3>
+          <button class="btn-add-top" onclick="openBudgetModal()"><i class="fa fa-plus"></i> Set Budget</button>
+        </div>
+        <div id="budget-overspend-alerts" class="alerts-container"></div>
+        <div id="budget-list" class="budget-grid">
+          <div class="empty-state"><i class="fa fa-bullseye"></i><p>No budgets set yet. Click "Set Budget" to start.</p></div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS VIEW -->
+      <div id="view-analytics" class="hidden">
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <div class="chart-card-header"><h3>Income vs Expenses</h3><span class="badge">Bar</span></div>
+            <canvas id="barChart2" height="200"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><h3>Spending Split</h3><span class="badge">Donut</span></div>
+            <canvas id="donutChart2" height="200"></canvas>
+          </div>
+        </div>
+        <div class="chart-card" style="margin-top:20px">
+          <div class="chart-card-header"><h3>Category Breakdown</h3><span class="badge">This Month</span></div>
+          <canvas id="categoryChart" height="120"></canvas>
         </div>
       </div>
     </main>
@@ -192,6 +235,42 @@
         <div class="modal-footer">
           <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
           <button type="submit" class="btn-primary">Add Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SET BUDGET MODAL -->
+  <div id="budget-modal-overlay" class="modal-overlay hidden" onclick="closeBudgetModalOutside(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fa fa-bullseye"></i> Set Budget Limit</h3>
+        <button onclick="closeBudgetModal()"><i class="fa fa-times"></i></button>
+      </div>
+      <form onsubmit="saveBudget(event)">
+        <div class="modal-body">
+          <div class="input-group modal-input">
+            <i class="fa fa-tag"></i>
+            <select id="budget-category" required style="flex:1;background:transparent;border:none;outline:none;color:var(--text);padding:14px 0;font-size:0.9rem;font-family:'Inter',sans-serif;">
+              <option value="" disabled selected style="background:#1a1a2e">Select Category</option>
+              <option value="Food" style="background:#1a1a2e">🍔 Food</option>
+              <option value="Transport" style="background:#1a1a2e">🚗 Transport</option>
+              <option value="Shopping" style="background:#1a1a2e">🛍️ Shopping</option>
+              <option value="Entertainment" style="background:#1a1a2e">🎬 Entertainment</option>
+              <option value="Health" style="background:#1a1a2e">💊 Health</option>
+              <option value="Education" style="background:#1a1a2e">📚 Education</option>
+              <option value="Utilities" style="background:#1a1a2e">💡 Utilities</option>
+              <option value="Other" style="background:#1a1a2e">📦 Other</option>
+            </select>
+          </div>
+          <div class="input-group modal-input">
+            <i class="fa fa-indian-rupee-sign"></i>
+            <input type="number" id="budget-limit" placeholder="Monthly limit amount" min="1" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeBudgetModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save Budget</button>
         </div>
       </form>
     </div>

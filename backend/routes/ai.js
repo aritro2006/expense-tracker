@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
 const Transaction = require('../models/Transaction');
+const Budget = require('../models/Budget');
 
 const callAI = async (systemPrompt, userPrompt, maxTokens = 500) => {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -93,7 +94,7 @@ router.get('/predict', auth, async (req, res) => {
   } catch { res.status(500).json({ reply: 'Prediction unavailable.' }); }
 });
 
-// Smart Alerts
+// Smart Alerts + Budget Overspend
 router.get('/alerts', auth, async (req, res) => {
   try {
     const ctx = await getContext(req.user.id);
@@ -101,10 +102,26 @@ router.get('/alerts', auth, async (req, res) => {
     const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
     const weekTx = ctx.transactions.filter(t => new Date(t.date) >= weekAgo);
     const weekExpense = weekTx.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+
+    // Get budget overspend info
+    const budgets = await Budget.find({ user: req.user.id, month: now.getMonth(), year: now.getFullYear() });
+    const monthTx = ctx.transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && t.amount < 0;
+    });
+    const overspentCategories = budgets.map(b => {
+      const spent = monthTx.filter(t => t.category === b.category).reduce((s, t) => s + Math.abs(t.amount), 0);
+      return spent > b.limit ? `${b.category} (spent ₹${spent} of ₹${b.limit} limit)` : null;
+    }).filter(Boolean);
+
+    const budgetContext = overspentCategories.length > 0
+      ? `\nOVERSPENT CATEGORIES THIS MONTH: ${overspentCategories.join(', ')}`
+      : '\nAll budgets are within limits.';
+
     const reply = await callAI(
-      'You are a financial alert system. Return a JSON array of 2-3 alert objects with fields: type (warning/info/success), message (short, max 12 words). Only return valid JSON array, nothing else.',
-      `Balance: ₹${ctx.balance}, Total income: ₹${ctx.income}, Total expenses: ₹${ctx.expense}, This week expenses: ₹${weekExpense}, Transaction count: ${ctx.transactions.length}`,
-      150
+      'You are a financial alert system. Return a JSON array of 2-4 alert objects with fields: type (warning/info/success), message (short, max 14 words). If there are overspent categories, include warning alerts for them. Only return valid JSON array, nothing else.',
+      `Balance: ₹${ctx.balance}, Total income: ₹${ctx.income}, Total expenses: ₹${ctx.expense}, This week expenses: ₹${weekExpense}, Transaction count: ${ctx.transactions.length}${budgetContext}`,
+      200
     );
     let alerts = [];
     try { alerts = JSON.parse(reply.match(/\[[\s\S]*\]/)?.[0] || '[]'); } catch { alerts = [{ type: 'info', message: 'Keep tracking your expenses!' }]; }
@@ -175,6 +192,20 @@ router.post('/parse-transaction', auth, async (req, res) => {
     try { result = JSON.parse(reply.match(/\{[\s\S]*\}/)?.[0] || '{}'); } catch {}
     res.json(result);
   } catch { res.status(500).json({ text: req.body.text, amount: 0, type: 'expense' }); }
+});
+
+// Budget Overspend AI Warning
+router.post('/budget-warning', auth, async (req, res) => {
+  try {
+    const { category, spent, limit } = req.body;
+    const percent = Math.round((spent / limit) * 100);
+    const reply = await callAI(
+      'You are a budget coach. Write ONE short, friendly but firm overspend warning in 1-2 sentences. Start with a warning emoji. Be specific with numbers.',
+      `Category: ${category}, Budget limit: ₹${limit}, Amount spent: ₹${spent}, Percentage used: ${percent}%`,
+      80
+    );
+    res.json({ warning: reply });
+  } catch { res.json({ warning: `⚠️ You've exceeded your ${category} budget!` }); }
 });
 
 module.exports = router;
