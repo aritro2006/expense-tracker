@@ -292,7 +292,9 @@ function exportCSV() {
   showToast('✅ CSV exported!', 'success');
 }
 
-// ===== SMART INPUT — CLIENT PARSE + AI REFINE =====
+// ===== SMART INPUT =====
+
+// Income always wins if detected — expense only wins if no income signal
 function quickParse(text) {
   const lower = text.toLowerCase();
 
@@ -300,23 +302,53 @@ function quickParse(text) {
   const amountMatch = text.match(/\d+(\.\d+)?/);
   const amount = amountMatch ? parseFloat(amountMatch[0]) : 0;
 
-  // Detect type
-  const expenseWords = ['spent','paid','bought','spend','pay','bill','fee','charge','cost','expense','purchase','eating','food','lunch','dinner','breakfast','coffee','uber','ola','petrol','diesel','rent','electricity','groceries'];
-  const incomeWords  = ['received','earned','got','salary','income','bonus','refund','credit','deposited','freelance','payment received'];
-  let type = 'expense';
-  if (incomeWords.some(w => lower.includes(w))) type = 'income';
-  if (expenseWords.some(w => lower.includes(w))) type = 'expense';
+  // Strong income signals
+  const incomeWords = [
+    'received','got','earned','salary','income','bonus','refund',
+    'credit','deposited','freelance','stipend','allowance','pocket money',
+    'pocket','awarded','won','prize','gift','cashback','reimbursement',
+    'payment received','transferred to me','sent me','gave me','lent me',
+    'scholarship','commission','dividend','interest received'
+  ];
 
-  // Clean description — remove numbers and filler words
+  // Strong expense signals
+  const expenseWords = [
+    'spent','paid','bought','spend','pay','bill','fee','charge','cost',
+    'expense','purchase','lunch','dinner','breakfast','coffee','tea',
+    'uber','ola','petrol','diesel','rent','electricity','groceries',
+    'shopping','recharge','subscription','emi','loan payment','withdrew',
+    'withdrawal','deducted','charged','booked','ordered'
+  ];
+
+  const hasIncome = incomeWords.some(w => lower.includes(w));
+  const hasExpense = expenseWords.some(w => lower.includes(w));
+
+  // Income takes priority — if both match, income wins
+  let type = 'expense'; // safe default
+  if (hasIncome) type = 'income';
+  if (!hasIncome && hasExpense) type = 'expense';
+
+  // Clean description
   let description = text
     .replace(/\d+(\.\d+)?/g, '')
-    .replace(/\b(spent|paid|on|for|today|yesterday|just|rs|inr|rupees?|₹|a|the|some|my)\b/gi, '')
+    .replace(/\b(spent|paid|on|for|today|yesterday|just|rs|inr|rupees?|₹|a|the|some|my|as|got|received|from|by|to)\b/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
 
   if (!description || description.length < 2) description = text.trim();
 
   return { text: description, amount, type };
+}
+
+// Detect income words in raw text for AI override protection
+function isObviousIncome(text) {
+  const lower = text.toLowerCase();
+  return [
+    'got','received','earned','salary','bonus','refund','credit',
+    'deposited','pocket','stipend','allowance','awarded','won',
+    'prize','gift','cashback','reimbursement','scholarship',
+    'commission','dividend','interest received','sent me','gave me'
+  ].some(w => lower.includes(w));
 }
 
 async function parseSmartInput() {
@@ -332,9 +364,9 @@ async function parseSmartInput() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
 
-  // Step 1: Fill instantly with client-side parse (always works)
+  // Step 1: Fill instantly with client-side parse (always works, no API needed)
   const quick = quickParse(rawText);
-  console.log('Quick parse:', quick);
+  console.log('Quick parse result:', quick);
 
   document.getElementById('t-text').value = quick.text || rawText;
   if (quick.amount > 0) document.getElementById('t-amount').value = quick.amount;
@@ -342,7 +374,7 @@ async function parseSmartInput() {
   smartInput.value = '';
   showToast('✨ Form filled!', 'success');
 
-  // Step 2: AI refines silently in background
+  // Step 2: AI refines in background silently
   try {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -358,16 +390,24 @@ async function parseSmartInput() {
 
     if (res.ok) {
       const data = await res.json();
-      console.log('AI refined:', data);
+      console.log('AI refined result:', data);
+
+      // Only override description if AI gives something better
       if (data.text && data.text.length > 1 && data.text !== rawText)
         document.getElementById('t-text').value = data.text;
+
+      // Only override amount if AI gives a valid number
       if (data.amount && data.amount > 0)
         document.getElementById('t-amount').value = Math.abs(data.amount);
-      if (data.type === 'income' || data.type === 'expense')
-        setType(data.type);
+
+      // Only let AI override type if no obvious income words in raw text
+      if (!isObviousIncome(rawText)) {
+        if (data.type === 'income' || data.type === 'expense')
+          setType(data.type);
+      }
     }
   } catch (err) {
-    console.log('AI refine skipped:', err.message);
+    console.log('AI refine skipped (non-fatal):', err.message);
   } finally {
     btn.innerHTML = '<i class="fa fa-wand-magic-sparkles"></i>';
     btn.disabled = false;
@@ -417,13 +457,9 @@ function renderCharts(transactions) {
       }]
     },
     options: {
-      responsive: true,
-      cutout: '70%',
+      responsive: true, cutout: '70%',
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#94a3b8', padding: 20, font: { family: 'Inter' }, usePointStyle: true }
-        },
+        legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 20, font: { family: 'Inter' }, usePointStyle: true } },
         tooltip: { callbacks: { label: ctx => ` ₹${ctx.raw.toFixed(2)}` } }
       }
     }
@@ -618,16 +654,13 @@ async function deleteBudget(id) {
   const token = localStorage.getItem('token');
   try {
     const res = await fetch(`${API_URL}/budget/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': token }
+      method: 'DELETE', headers: { 'Authorization': token }
     });
     if (res.ok) { showToast('Budget deleted', 'success'); loadBudgets(); }
   } catch { showToast('Failed to delete', 'error'); }
 }
 
-function openBudgetModal() {
-  document.getElementById('budget-modal-overlay').classList.remove('hidden');
-}
+function openBudgetModal() { document.getElementById('budget-modal-overlay').classList.remove('hidden'); }
 function closeBudgetModal() {
   document.getElementById('budget-modal-overlay').classList.add('hidden');
   document.getElementById('budget-category').value = '';
@@ -664,9 +697,7 @@ function setType(type) {
 async function loadWeeklySummary() {
   const token = localStorage.getItem('token');
   try {
-    const res = await fetch(`${API_URL}/ai/weekly-summary`, {
-      headers: { 'Authorization': token }
-    });
+    const res = await fetch(`${API_URL}/ai/weekly-summary`, { headers: { 'Authorization': token } });
     const data = await res.json();
     document.getElementById('weekly-summary-text').textContent =
       data.summary || 'No transactions this week yet.';
@@ -679,15 +710,12 @@ async function loadWeeklySummary() {
 async function loadDailyTip() {
   const token = localStorage.getItem('token');
   try {
-    const res = await fetch(`${API_URL}/ai/daily-tip`, {
-      headers: { 'Authorization': token }
-    });
+    const res = await fetch(`${API_URL}/ai/daily-tip`, { headers: { 'Authorization': token } });
     const data = await res.json();
     document.getElementById('daily-tip-text').textContent =
       data.tip || '💡 Keep tracking your expenses!';
   } catch {
-    document.getElementById('daily-tip-text').textContent =
-      '💡 Track every rupee to build better habits!';
+    document.getElementById('daily-tip-text').textContent = '💡 Track every rupee to build better habits!';
   }
 }
 
@@ -695,9 +723,7 @@ async function loadDailyTip() {
 async function loadAlerts() {
   const token = localStorage.getItem('token');
   try {
-    const res = await fetch(`${API_URL}/ai/alerts`, {
-      headers: { 'Authorization': token }
-    });
+    const res = await fetch(`${API_URL}/ai/alerts`, { headers: { 'Authorization': token } });
     const data = await res.json();
     const container = document.getElementById('alerts-container');
     container.innerHTML = '';
@@ -723,9 +749,7 @@ function toggleAIChat() {
   const panel = document.getElementById('ai-chat-panel');
   const icon = document.getElementById('ai-fab-icon');
   panel.classList.toggle('hidden');
-  icon.className = panel.classList.contains('hidden')
-    ? 'fa-solid fa-robot'
-    : 'fa fa-times';
+  icon.className = panel.classList.contains('hidden') ? 'fa-solid fa-robot' : 'fa fa-times';
 }
 
 // ===== AI CHAT =====
@@ -739,8 +763,7 @@ async function analyzeFinances() {
       body: JSON.stringify({ message: 'Analyze my finances and give specific suggestions.' })
     });
     const data = await res.json();
-    removeTyping();
-    addAIMessage(data.reply, 'bot');
+    removeTyping(); addAIMessage(data.reply, 'bot');
   } catch { removeTyping(); addAIMessage('Analysis failed. Try again.', 'bot'); }
 }
 
@@ -768,8 +791,7 @@ async function getPrediction() {
       headers: { 'Authorization': localStorage.getItem('token') }
     });
     const data = await res.json();
-    removeTyping();
-    addAIMessage(data.reply, 'bot');
+    removeTyping(); addAIMessage(data.reply, 'bot');
   } catch { removeTyping(); addAIMessage('Prediction unavailable.', 'bot'); }
 }
 
@@ -787,8 +809,7 @@ async function sendAIMessage() {
       body: JSON.stringify({ message })
     });
     const data = await res.json();
-    removeTyping();
-    addAIMessage(data.reply, 'bot');
+    removeTyping(); addAIMessage(data.reply, 'bot');
   } catch { removeTyping(); addAIMessage('Something went wrong.', 'bot'); }
 }
 
@@ -796,14 +817,10 @@ function addAIMessage(text, sender) {
   const win = document.getElementById('ai-chat-window');
   const welcome = win.querySelector('.ai-welcome-msg');
   if (welcome) welcome.remove();
-  const icon = sender === 'bot'
-    ? '<i class="fa-solid fa-robot"></i>'
-    : '<i class="fa fa-user"></i>';
+  const icon = sender === 'bot' ? '<i class="fa-solid fa-robot"></i>' : '<i class="fa fa-user"></i>';
   const div = document.createElement('div');
   div.className = `ai-msg ${sender}`;
-  div.innerHTML = `
-    <div class="ai-msg-avatar">${icon}</div>
-    <div class="ai-msg-bubble">${text}</div>`;
+  div.innerHTML = `<div class="ai-msg-avatar">${icon}</div><div class="ai-msg-bubble">${text}</div>`;
   win.appendChild(div);
   win.scrollTop = win.scrollHeight;
 }
@@ -819,16 +836,12 @@ function showTyping() {
     justify-content:center;font-size:0.72rem;flex-shrink:0">
       <i class="fa-solid fa-robot"></i>
     </div>
-    <div class="ai-typing-dots">
-      <span></span><span></span><span></span>
-    </div>`;
+    <div class="ai-typing-dots"><span></span><span></span><span></span></div>`;
   win.appendChild(div);
   win.scrollTop = win.scrollHeight;
 }
 
-function removeTyping() {
-  document.getElementById('typing-indicator')?.remove();
-}
+function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
 
 // ===== TOAST =====
 function showToast(msg, type = 'success') {
@@ -841,15 +854,11 @@ function showToast(msg, type = 'success') {
 // ===== UTILS =====
 function formatCurrency(amount) {
   return '₹' + Math.abs(amount).toLocaleString('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: 2, maximumFractionDigits: 2
   });
 }
 function escapeHTML(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ===== INIT =====
