@@ -103,7 +103,6 @@ router.get('/alerts', auth, async (req, res) => {
     const weekTx = ctx.transactions.filter(t => new Date(t.date) >= weekAgo);
     const weekExpense = weekTx.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
 
-    // Get budget overspend info
     const budgets = await Budget.find({ user: req.user.id, month: now.getMonth(), year: now.getFullYear() });
     const monthTx = ctx.transactions.filter(t => {
       const d = new Date(t.date);
@@ -124,7 +123,8 @@ router.get('/alerts', auth, async (req, res) => {
       200
     );
     let alerts = [];
-    try { alerts = JSON.parse(reply.match(/\[[\s\S]*\]/)?.[0] || '[]'); } catch { alerts = [{ type: 'info', message: 'Keep tracking your expenses!' }]; }
+    try { alerts = JSON.parse(reply.match(/\[[\s\S]*\]/)?.[0] || '[]'); }
+    catch { alerts = [{ type: 'info', message: 'Keep tracking your expenses!' }]; }
     res.json({ alerts });
   } catch { res.status(500).json({ alerts: [] }); }
 });
@@ -180,18 +180,36 @@ router.get('/daily-tip', auth, async (req, res) => {
   } catch { res.json({ tip: '💡 Track every expense, no matter how small — small amounts add up fast!' }); }
 });
 
-// Smart Transaction Parse
+// Smart Transaction Parse ← FIXED
 router.post('/parse-transaction', auth, async (req, res) => {
   try {
     const { text } = req.body;
     const reply = await callAI(
-      'You are a transaction parser. Extract transaction details and return ONLY a JSON object with fields: "text" (clean description), "amount" (number, positive), "type" ("income" or "expense"). Nothing else, just valid JSON.',
-      `User input: "${text}"`, 80
+      'You are a transaction parser. Extract transaction details and return ONLY a valid JSON object with exactly these three fields: "text" (string, clean short description), "amount" (number, always positive), "type" (string, exactly "income" or "expense"). Return nothing else, no explanation, just the JSON object.',
+      `User input: "${text}"`,
+      100
     );
-    let result = { text, amount: 0, type: 'expense' };
-    try { result = JSON.parse(reply.match(/\{[\s\S]*\}/)?.[0] || '{}'); } catch {}
+
+    console.log('AI parse reply:', reply);
+
+    let result = { text: text, amount: 0, type: 'expense' };
+    try {
+      const match = reply.match(/\{[\s\S]*?\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        result.text   = parsed.text   || text;
+        result.amount = Math.abs(parseFloat(parsed.amount)) || 0;
+        result.type   = parsed.type === 'income' ? 'income' : 'expense';
+      }
+    } catch (e) {
+      console.error('JSON parse error in parse-transaction:', e);
+    }
+
     res.json(result);
-  } catch { res.status(500).json({ text: req.body.text, amount: 0, type: 'expense' }); }
+  } catch (err) {
+    console.error('parse-transaction route error:', err);
+    res.status(500).json({ text: req.body.text, amount: 0, type: 'expense' });
+  }
 });
 
 // Budget Overspend AI Warning
@@ -205,7 +223,7 @@ router.post('/budget-warning', auth, async (req, res) => {
       80
     );
     res.json({ warning: reply });
-  } catch { res.json({ warning: `⚠️ You've exceeded your ${category} budget!` }); }
+  } catch { res.json({ warning: `⚠️ You've exceeded your budget!` }); }
 });
 
 module.exports = router;

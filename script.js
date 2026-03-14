@@ -363,10 +363,7 @@ async function parseSmartInput() {
   }
 
   const btn = document.querySelector('.btn-smart');
-
-  // in case previous call left it disabled
   btn.disabled = false;
-
   btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
   btn.disabled = true;
 
@@ -387,18 +384,22 @@ async function parseSmartInput() {
     });
 
     if (!res.ok) {
-      console.error('AI parse status:', res.status);
-      console.error(await res.text());
+      console.error('AI parse status:', res.status, await res.text());
       showToast('AI parse failed, check console', 'error');
       return;
     }
 
     const data = await res.json();
-    console.log('AI parse result:', data);
+    console.log('AI raw response:', JSON.stringify(data));
 
-    if (data.text) document.getElementById('t-text').value = data.text;
-    if (data.amount) document.getElementById('t-amount').value = data.amount;
-    if (data.type) setType(data.type);
+    if (data.text !== undefined && data.text !== '')
+      document.getElementById('t-text').value = data.text;
+
+    if (data.amount !== undefined && data.amount !== null)
+      document.getElementById('t-amount').value = Math.abs(data.amount);
+
+    if (data.type === 'income' || data.type === 'expense')
+      setType(data.type);
 
     smartInput.value = '';
     showToast('✨ Form auto‑filled by AI!', 'success');
@@ -410,6 +411,7 @@ async function parseSmartInput() {
     btn.disabled = false;
   }
 }
+
 
 // ===== CHARTS =====
 function renderCharts(transactions) {
