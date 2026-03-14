@@ -76,8 +76,8 @@ async function loginUser(e) {
     });
     const data = await res.json();
     if (res.ok) {
-      localStorage.setItem('token',    data.token);
-      localStorage.setItem('userName', data.name || email.split('@')[0]);
+      localStorage.setItem('token',      data.token);
+      localStorage.setItem('userName',   data.name || email.split('@')[0]);
       localStorage.setItem('emailNotif', data.emailNotifications !== false ? 'true' : 'false');
       showDashboard();
       processRecurring();
@@ -273,8 +273,13 @@ function openEditModal(id) {
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
-function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); editingId = null; }
-function closeModalOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  editingId = null;
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
 
 function setType(type) {
   currentType = type;
@@ -283,54 +288,114 @@ function setType(type) {
   document.getElementById('expenseBtn').classList.toggle('active', type === 'expense');
 }
 
+// ===== SUBMIT TRANSACTION — SAVE FIRST, CATEGORIZE AFTER =====
 async function submitTransaction(e) {
   e.preventDefault();
+
   const text      = document.getElementById('t-text').value.trim();
   const rawAmount = parseFloat(document.getElementById('t-amount').value);
   const type      = document.getElementById('t-type').value;
   const notes     = document.getElementById('t-notes').value.trim();
   const account   = document.getElementById('t-account').value;
-  const amount    = type === 'expense' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
   const token     = localStorage.getItem('token');
-  let category = 'Other';
-  let emoji    = type === 'income' ? '💰' : '💸';
 
-  if (!editingId) {
+  if (!text)              { showToast('Please enter a description', 'error'); return; }
+  if (isNaN(rawAmount) || rawAmount <= 0) { showToast('Please enter a valid amount', 'error'); return; }
+
+  const amount   = type === 'expense' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
+  const defEmoji = type === 'income' ? '💰' : '💸';
+
+  const submitBtn = document.getElementById('submit-btn-text');
+  submitBtn.textContent = editingId ? 'Saving...' : 'Adding...';
+
+  if (editingId) {
+    // ── EDIT MODE ──────────────────────────────────────────────────────────
     try {
-      const catRes  = await fetch(`${API_URL}/ai/categorize`, {
+      const existing = allTransactions.find(t => t._id === editingId);
+      const res = await fetch(`${API_URL}/transactions/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': token },
+        body: JSON.stringify({
+          text, amount,
+          category: existing?.category || 'Other',
+          emoji:    existing?.emoji    || defEmoji,
+          notes, account
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        closeModal();
+        showToast('✏️ Transaction updated!', 'success');
+        await loadTransactions();
+      } else {
+        showToast(data.message || 'Failed to update', 'error');
+      }
+    } catch {
+      showToast('Network error. Check connection.', 'error');
+    } finally {
+      submitBtn.textContent = 'Save Changes';
+    }
+    return;
+  }
+
+  // ── ADD MODE: Save immediately with defaults ───────────────────────────
+  try {
+    // Step 1: Save transaction right away — no AI dependency
+    const saveRes = await fetch(`${API_URL}/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': token },
+      body: JSON.stringify({
+        text, amount,
+        category: 'Other',
+        emoji:    defEmoji,
+        notes, account
+      })
+    });
+
+    const saveData = await saveRes.json();
+
+    if (!saveRes.ok) {
+      showToast(saveData.message || 'Failed to save transaction', 'error');
+      submitBtn.textContent = 'Add Transaction';
+      return;
+    }
+
+    // Step 2: Transaction saved — close modal and refresh immediately
+    closeModal();
+    showToast(`${defEmoji} Transaction added!`, 'success');
+    await loadTransactions();
+
+    // Step 3: Try AI categorization in background — silently update if successful
+    try {
+      const catRes = await fetch(`${API_URL}/ai/categorize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token },
         body: JSON.stringify({ text })
       });
+
       if (catRes.ok) {
         const catData = await catRes.json();
-        category = catData.category || 'Other';
-        emoji    = catData.emoji    || emoji;
-        const catEl = document.getElementById('category-display');
-        catEl.textContent = `${emoji} Categorized as ${category}`;
-        catEl.classList.remove('hidden');
-      }
-    } catch {}
-  } else {
-    const ex = allTransactions.find(t => t._id === editingId);
-    if (ex) { category = ex.category; emoji = ex.emoji; }
-  }
+        const category = catData.category || 'Other';
+        const emoji    = catData.emoji    || defEmoji;
 
-  const url    = editingId ? `${API_URL}/transactions/${editingId}` : `${API_URL}/transactions`;
-  const method = editingId ? 'PUT' : 'POST';
-  try {
-    const res = await fetch(url, {
-      method, headers: { 'Content-Type': 'application/json', 'Authorization': token },
-      body: JSON.stringify({ text, amount, category, emoji, notes, account })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      closeModal();
-      showToast(editingId ? '✏️ Transaction updated!' : `${emoji} Transaction added!`, 'success');
-      await loadTransactions();
-      await loadAlerts();
-    } else { showToast(data.message || 'Failed', 'error'); }
-  } catch { showToast('Server error.', 'error'); }
+        // Silently update the saved transaction with AI category
+        await fetch(`${API_URL}/transactions/${saveData._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': token },
+          body: JSON.stringify({ category, emoji })
+        });
+
+        // Refresh list to show updated category/emoji
+        await loadTransactions();
+      }
+    } catch {
+      // AI categorization failed silently — transaction already saved, no problem
+    }
+
+  } catch {
+    showToast('Network error. Check your connection.', 'error');
+    submitBtn.textContent = 'Add Transaction';
+  }
 }
 
 async function deleteTransaction(id) {
@@ -342,8 +407,14 @@ async function deleteTransaction(id) {
       method: 'DELETE', headers: { 'Authorization': token }
     });
     if (res.ok) { showToast('Transaction deleted', 'success'); loadTransactions(); }
-    else { if (item) item.style.opacity = '1'; showToast('Failed to delete', 'error'); }
-  } catch { if (item) item.style.opacity = '1'; showToast('Server error.', 'error'); }
+    else {
+      if (item) item.style.opacity = '1';
+      showToast('Failed to delete', 'error');
+    }
+  } catch {
+    if (item) item.style.opacity = '1';
+    showToast('Network error.', 'error');
+  }
 }
 
 // ===== CSV EXPORT =====
@@ -365,7 +436,7 @@ function exportCSV() {
   showToast('✅ CSV exported!', 'success');
 }
 
-// ===== SMART INPUT — FIXED INCOME/EXPENSE DETECTION =====
+// ===== SMART INPUT =====
 const INCOME_KEYWORDS = [
   'got', 'get', 'received', 'receive', 'earned', 'earn', 'salary', 'income',
   'bonus', 'allowance', 'pocket money', 'pocket', 'stipend', 'refund',
@@ -390,25 +461,15 @@ function quickParse(text) {
   const lower       = text.toLowerCase();
   const amountMatch = text.match(/\d+(\.\d+)?/);
   const amount      = amountMatch ? parseFloat(amountMatch[0]) : 0;
-
-  // Check income keywords first
-  const hasIncome  = INCOME_KEYWORDS.some(w => lower.includes(w));
-  const hasExpense = EXPENSE_KEYWORDS.some(w => lower.includes(w));
-
-  // Income takes priority only if explicitly found and no expense keyword
-  let type = 'expense'; // default
+  const hasIncome   = INCOME_KEYWORDS.some(w => lower.includes(w));
+  const hasExpense  = EXPENSE_KEYWORDS.some(w => lower.includes(w));
+  let type = 'expense';
   if (hasIncome && !hasExpense) type = 'income';
-  if (hasIncome && hasExpense)  type = 'expense'; // "paid salary" → expense
-  if (!hasIncome && !hasExpense) type = 'expense'; // unknown → default expense
-
-  // Clean up description
   let description = text
     .replace(/\d+(\.\d+)?/g, '')
-    .replace(/\b(spent|paid|on|for|today|yesterday|just|rs|inr|rupees?|₹|a|the|some|my|as|got|received|from|by|to|in|at|of|and|is|was|this|that)\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/\b(spent|paid|on|for|today|yesterday|just|rs|inr|rupees?|₹|a|the|some|my|as|got|received|from|by|to|in|at|of|and|is|was)\b/gi, '')
+    .replace(/\s+/g, ' ').trim();
   if (!description || description.length < 2) description = text.trim();
-
   return { text: description, amount, type };
 }
 
@@ -418,10 +479,10 @@ async function parseSmartInput() {
   if (!rawText) { showToast('Type something first', 'error'); return; }
 
   const btn = document.querySelector('.btn-smart');
-  btn.disabled = true;
+  btn.disabled  = true;
   btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
 
-  // Step 1: Apply local keyword parse immediately for instant feedback
+  // Instant local parse
   const quick = quickParse(rawText);
   if (quick.text && quick.text.length > 1) document.getElementById('t-text').value   = quick.text;
   if (quick.amount > 0)                    document.getElementById('t-amount').value = quick.amount;
@@ -429,7 +490,6 @@ async function parseSmartInput() {
   smartInput.value = '';
   showToast('✨ Parsing with AI...', 'success');
 
-  // Step 2: Try AI for better result, override only if confident
   try {
     const token = localStorage.getItem('token');
     const res   = await fetch(`${API_URL}/ai/parse-transaction`, {
@@ -437,33 +497,22 @@ async function parseSmartInput() {
       headers: { 'Content-Type': 'application/json', 'Authorization': token },
       body: JSON.stringify({ text: rawText })
     });
-
     if (res.ok) {
       const data = await res.json();
-
-      // Only override description if AI gave something meaningful
       if (data.text && data.text.trim().length > 1 && data.text !== rawText)
         document.getElementById('t-text').value = data.text;
-
-      // Only override amount if AI found one
       if (data.amount && data.amount > 0)
         document.getElementById('t-amount').value = data.amount;
-
-      // Only override type if AI is confident — validate against keywords too
-      if (data.type === 'income' || data.type === 'expense') {
-        // Double-check: if local parse strongly says income, trust it
-        const localHasIncome  = INCOME_KEYWORDS.some(w => rawText.toLowerCase().includes(w));
-        const localHasExpense = EXPENSE_KEYWORDS.some(w => rawText.toLowerCase().includes(w));
-        if (localHasIncome && !localHasExpense) {
-          setType('income'); // Override AI if keywords are clear
-        } else {
-          setType(data.type);
-        }
+      // Trust local keyword detection over AI for income/expense
+      const localHasIncome  = INCOME_KEYWORDS.some(w => rawText.toLowerCase().includes(w));
+      const localHasExpense = EXPENSE_KEYWORDS.some(w => rawText.toLowerCase().includes(w));
+      if (localHasIncome && !localHasExpense) {
+        setType('income');
+      } else if (data.type === 'income' || data.type === 'expense') {
+        setType(data.type);
       }
-      showToast('✨ Form filled!', 'success');
-    } else {
-      showToast('✨ Form filled (local parse)!', 'success');
     }
+    showToast('✨ Form filled!', 'success');
   } catch {
     showToast('✨ Form filled!', 'success');
   } finally {
@@ -481,9 +530,9 @@ async function handleReceiptUpload(input) {
   showToast('📸 Scanning receipt...', 'success');
   try {
     const base64 = await new Promise((resolve, reject) => {
-      const reader    = new FileReader();
-      reader.onload   = () => resolve(reader.result.split(',')[1]);
-      reader.onerror  = reject;
+      const reader  = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
       reader.readAsDataURL(file);
     });
     const token = localStorage.getItem('token');
@@ -561,8 +610,7 @@ function renderAnalyticsCharts() {
         borderColor: ['#10b981', '#ef4444'], borderWidth: 2, borderRadius: 10, borderSkipped: false }]
     },
     options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
+      responsive: true, plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color: '#94a3b8' } },
         y: { ticks: { color: '#94a3b8', callback: v => `₹${v}` } }
@@ -584,7 +632,6 @@ function renderAnalyticsCharts() {
     }
   });
 
-  // 6-Month Trend
   const now    = new Date();
   const labels = [];
   const data   = [];
@@ -616,7 +663,6 @@ function renderAnalyticsCharts() {
     }
   });
 
-  // Category chart
   const monthExp = allTransactions.filter(t => {
     const d = new Date(t.date);
     return t.amount < 0 && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -644,7 +690,6 @@ function renderAnalyticsCharts() {
     }
   });
 
-  // Top 5 Categories
   const sorted = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const total  = catData.reduce((s, v) => s + v, 0) || 1;
   document.getElementById('top-categories-list').innerHTML = sorted.length
