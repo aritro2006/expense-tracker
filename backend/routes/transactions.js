@@ -15,10 +15,18 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized. Please login again.' });
+    }
+
     const { text, amount, category, emoji, notes, account } = req.body;
 
-    if (!text)   return res.status(400).json({ message: 'Description is required' });
-    if (!amount) return res.status(400).json({ message: 'Amount is required' });
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Description is required' });
+    }
+    if (amount === undefined || amount === null || isNaN(parseFloat(amount))) {
+      return res.status(400).json({ message: 'A valid amount is required' });
+    }
 
     const t = new Transaction({
       user:     req.user.id,
@@ -27,7 +35,8 @@ router.post('/', auth, async (req, res) => {
       category: category || 'Other',
       emoji:    emoji    || (parseFloat(amount) > 0 ? '💰' : '💸'),
       notes:    notes    || '',
-      account:  account  || 'Main'
+      account:  account  || 'Main',
+      date:     new Date()
     });
 
     await t.save();
