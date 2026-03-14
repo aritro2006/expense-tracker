@@ -12,10 +12,11 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.0.0",
-    "node-fetch": "^3.3.2"
+    "mongoose": "^7.0.3",
+    "nodemailer": "^6.9.3",
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.0.0"
+    "nodemon": "^3.0.1"
   }
 }
