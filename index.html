@@ -3,7 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Expense Tracker</title>
+
+  <!-- SEO Meta Tags -->
+  <title>FinCompan — AI-Powered Personal Finance Tracker</title>
+  <meta name="description" content="FinCompan is a free AI-powered personal finance tracker. Track income, expenses, budgets, savings goals and get weekly email summaries. Built for India." />
+  <meta name="keywords" content="expense tracker, budget tracker, finance app, income tracker, AI finance, free expense tracker India, FinCompan, personal finance India" />
+  <meta name="author" content="Aritro Ghosh" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://fincompan.vercel.app" />
+
+  <!-- Open Graph (WhatsApp / Facebook preview) -->
+  <meta property="og:title" content="FinCompan — AI-Powered Personal Finance Tracker" />
+  <meta property="og:description" content="Free AI-powered expense and budget tracker built for India. Track income, expenses, savings goals and get weekly summaries." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://fincompan.vercel.app" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="FinCompan — AI Finance Tracker" />
+  <meta name="twitter:description" content="Free AI-powered expense tracker. Track income, budgets and savings goals. Built for India." />
+
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -11,11 +30,12 @@
 </head>
 <body>
 
+
 <!-- AUTH -->
 <div id="auth-section">
   <div class="auth-card">
     <div class="auth-logo"><i class="fa-solid fa-wallet"></i></div>
-    <h1 class="auth-title">Smart Expense Tracker</h1>
+    <h1 class="auth-title">FinCompan</h1>
     <p class="auth-subtitle">AI-powered personal finance</p>
     <div class="auth-tabs">
       <button id="loginTabBtn"    class="auth-tab active" onclick="switchTab('login')">Login</button>
@@ -37,10 +57,11 @@
   </div>
 </div>
 
+
 <!-- DASHBOARD -->
 <div id="dashboard-section" class="hidden">
   <nav class="sidebar">
-    <div class="sidebar-logo"><i class="fa-solid fa-wallet"></i><span>ExpenseAI</span></div>
+    <div class="sidebar-logo"><i class="fa-solid fa-wallet"></i><span>FinCompan</span></div>
     <div class="sidebar-user">
       <div id="user-avatar" class="user-avatar">U</div>
       <div><div id="user-name-display" class="user-name">User</div><div class="user-role">Personal Account</div></div>
@@ -57,6 +78,7 @@
     <button class="btn-logout" onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
   </nav>
 
+
   <main class="main-content">
     <div class="topbar">
       <div><h2 id="page-title">Dashboard</h2><p id="greeting-text" class="greeting"></p></div>
@@ -65,6 +87,7 @@
         <button class="btn-add"  onclick="openModal()"><i class="fa fa-plus"></i> Add Transaction</button>
       </div>
     </div>
+
 
     <!-- DASHBOARD VIEW -->
     <div id="view-dashboard">
@@ -110,6 +133,7 @@
       </div>
     </div>
 
+
     <!-- TRANSACTIONS VIEW -->
     <div id="view-transactions" class="hidden">
       <div class="toolbar">
@@ -141,6 +165,7 @@
       </div>
     </div>
 
+
     <!-- BUDGET VIEW -->
     <div id="view-budget" class="hidden">
       <div class="toolbar">
@@ -151,6 +176,7 @@
       <div id="budget-list" class="budget-grid"></div>
     </div>
 
+
     <!-- GOALS VIEW -->
     <div id="view-goals" class="hidden">
       <div class="toolbar">
@@ -160,6 +186,7 @@
       <div id="goal-advice" class="goal-advice-box hidden"></div>
       <div id="goals-list" class="goals-grid"></div>
     </div>
+
 
     <!-- ANALYTICS VIEW -->
     <div id="view-analytics" class="hidden">
@@ -172,6 +199,7 @@
       </div>
     </div>
 
+
     <!-- RECURRING VIEW -->
     <div id="view-recurring" class="hidden">
       <div class="toolbar">
@@ -183,6 +211,7 @@
       </div>
       <div id="recurring-list" class="recurring-grid"></div>
     </div>
+
 
     <!-- PROFILE VIEW -->
     <div id="view-profile" class="hidden">
@@ -226,6 +255,7 @@
   </main>
 </div>
 
+
 <!-- MODAL: ADD/EDIT TRANSACTION -->
 <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModalOutside(event)">
   <div class="modal">
@@ -265,6 +295,7 @@
   </div>
 </div>
 
+
 <!-- MODAL: BUDGET -->
 <div id="budget-modal-overlay" class="modal-overlay hidden" onclick="closeBudgetModalOutside(event)">
   <div class="modal">
@@ -292,6 +323,7 @@
     </form>
   </div>
 </div>
+
 
 <!-- MODAL: RECURRING -->
 <div id="recurring-modal-overlay" class="modal-overlay hidden" onclick="closeRecurringModalOutside(event)">
@@ -332,6 +364,7 @@
   </div>
 </div>
 
+
 <!-- MODAL: GOAL -->
 <div id="goal-modal-overlay" class="modal-overlay hidden" onclick="closeGoalModalOutside(event)">
   <div class="modal">
@@ -355,6 +388,7 @@
   </div>
 </div>
 
+
 <!-- MODAL: ADD TO GOAL -->
 <div id="add-to-goal-overlay" class="modal-overlay hidden" onclick="closeAddToGoalOutside(event)">
   <div class="modal modal-sm">
@@ -368,6 +402,7 @@
     <button class="btn-submit" onclick="confirmAddToGoal()">Add</button>
   </div>
 </div>
+
 
 <!-- AI CHAT -->
 <div id="ai-chat-panel" class="ai-chat-panel hidden">
@@ -392,6 +427,7 @@
     <button onclick="sendAIMessage()"><i class="fa fa-paper-plane"></i></button>
   </div>
 </div>
+
 
 <button class="ai-fab" onclick="toggleAIChat()"><i id="ai-fab-icon" class="fa-solid fa-robot"></i></button>
 <div id="toast" class="toast hidden"></div>
