@@ -41,13 +41,12 @@
     <!-- NAVBAR -->
     <nav class="navbar">
       <div class="nav-brand">💰 FinCompan</div>
-      <div class="nav-links">
+      <div class="nav-links" id="nav-links">
         <button onclick="showPage('dashboard')">Dashboard</button>
         <button onclick="showPage('transactions')">Transactions</button>
         <button onclick="showPage('budget')">Budget</button>
         <button onclick="showPage('goals')">Goals</button>
         <button onclick="showPage('recurring')">Recurring</button>
-        <button onclick="showPage('ai')">AI Insights</button>
         <button onclick="showPage('profile')">Profile</button>
         <button onclick="logout()" class="logout-btn">Logout</button>
       </div>
@@ -57,27 +56,49 @@
     <!-- DASHBOARD -->
     <div id="page-dashboard" class="page">
       <h2>Dashboard</h2>
+
+      <!-- SUMMARY CARDS -->
       <div class="cards">
         <div class="card income-card">
           <h3>Total Income</h3>
-          <p id="dash-income">₹0</p>
+          <p id="dash-income">₹0.00</p>
         </div>
         <div class="card expense-card">
           <h3>Total Expenses</h3>
-          <p id="dash-expense">₹0</p>
+          <p id="dash-expense">₹0.00</p>
         </div>
         <div class="card balance-card">
           <h3>Balance</h3>
-          <p id="dash-balance">₹0</p>
+          <p id="dash-balance">₹0.00</p>
+        </div>
+        <div class="card score-card">
+          <h3>Health Score</h3>
+          <p id="dash-score">--</p>
         </div>
       </div>
+
+      <!-- AI INSIGHTS STRIP -->
+      <div class="ai-strip">
+        <div class="ai-strip-item">
+          <span class="ai-strip-label">💡 Tip</span>
+          <span id="dash-tip">Loading...</span>
+        </div>
+        <div class="ai-strip-item" id="dash-alert-wrap">
+          <span class="ai-strip-label">⚠️ Alert</span>
+          <span id="dash-alert">Loading...</span>
+        </div>
+      </div>
+
+      <!-- RECENT TRANSACTIONS -->
       <div class="section-box">
         <h3>Recent Transactions</h3>
         <div id="dash-recent"></div>
       </div>
+
+      <!-- BUDGET OVERVIEW -->
       <div class="section-box">
-        <h3>💡 Daily Tip</h3>
-        <p id="dash-tip">Loading...</p>
+        <h3>Budget Overview</h3>
+        <div id="dash-budget"></div>
       </div>
     </div>
 
@@ -86,9 +107,17 @@
       <h2>Transactions</h2>
       <div class="form-box">
         <h3>Add Transaction</h3>
+
+        <!-- MAGIC WAND INPUT -->
+        <div class="magic-row">
+          <input type="text" id="txn-magic" placeholder='✨ Type it naturally e.g. "paid 500 for groceries yesterday"' />
+          <button class="magic-btn" onclick="magicFill()" title="Auto-fill with AI">🪄</button>
+        </div>
+        <p class="magic-hint">Or fill manually below:</p>
+
         <select id="txn-type">
-          <option value="income">Income</option>
           <option value="expense">Expense</option>
+          <option value="income">Income</option>
         </select>
         <input type="number" id="txn-amount" placeholder="Amount (₹)" />
         <input type="text" id="txn-category" placeholder="Category (e.g. Food, Salary)" />
@@ -99,6 +128,7 @@
       </div>
       <div class="section-box">
         <h3>All Transactions</h3>
+        <input type="text" id="txn-search" placeholder="🔍 Search transactions..." oninput="filterTransactions()" style="width:100%;padding:10px;background:#2a3045;border:1px solid #3a4060;border-radius:8px;color:#fff;margin-bottom:16px" />
         <div id="txn-list"></div>
       </div>
     </div>
@@ -161,30 +191,6 @@
       </div>
     </div>
 
-    <!-- AI INSIGHTS -->
-    <div id="page-ai" class="page" style="display:none">
-      <h2>AI Insights</h2>
-      <div class="cards">
-        <div class="card">
-          <h3>Financial Health Score</h3>
-          <p id="ai-score" style="font-size:2.5rem;font-weight:bold;">--</p>
-          <p>out of 100</p>
-        </div>
-      </div>
-      <div class="section-box">
-        <h3>💡 Daily Tip</h3>
-        <p id="ai-tip">Loading...</p>
-      </div>
-      <div class="section-box">
-        <h3>⚠️ Alerts</h3>
-        <div id="ai-alerts"></div>
-      </div>
-      <div class="section-box">
-        <h3>📊 Summary</h3>
-        <div id="ai-summary"></div>
-      </div>
-    </div>
-
     <!-- PROFILE -->
     <div id="page-profile" class="page" style="display:none">
       <h2>Profile</h2>
@@ -201,6 +207,29 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- FLOATING CHATBOT -->
+  <div id="chat-bubble" onclick="toggleChat()">💬</div>
+
+  <div id="chat-panel">
+    <div class="chat-header">
+      <span>🤖 FinBot</span>
+      <button onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg bot">👋 Hi! I'm FinBot. Ask me about your finances!</div>
+      <div class="chat-suggestions">
+        <button onclick="quickAsk('What is my balance?')">My balance</button>
+        <button onclick="quickAsk('How is my health score?')">Health score</button>
+        <button onclick="quickAsk('Give me a tip')">Get a tip</button>
+        <button onclick="quickAsk('Show my summary')">Summary</button>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Ask FinBot..." onkeydown="if(event.key==='Enter')sendChat()" />
+      <button onclick="sendChat()">➤</button>
+    </div>
   </div>
 
   <script src="script.js"></script>

@@ -7,7 +7,7 @@ body {
   min-height: 100vh;
 }
 
-/* AUTH */
+/* ── AUTH ─────────────────────────────── */
 #auth-section {
   display: flex;
   justify-content: center;
@@ -64,7 +64,7 @@ body {
 .error-msg { color: #f87171; margin-top: 10px; font-size: 0.88rem; }
 .success-msg { color: #4ade80; margin-top: 10px; font-size: 0.88rem; }
 
-/* NAVBAR */
+/* ── NAVBAR ───────────────────────────── */
 .navbar {
   background: #1e2235;
   padding: 12px 24px;
@@ -80,7 +80,6 @@ body {
 }
 
 .nav-brand { font-size: 1.3rem; font-weight: bold; color: #4ade80; }
-
 .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .nav-links button {
@@ -96,7 +95,6 @@ body {
 
 .nav-links button:hover { background: #2a3045; color: #fff; }
 .nav-links button.active { background: #4ade80; color: #0f1117; font-weight: bold; }
-
 .logout-btn { color: #f87171 !important; }
 .logout-btn:hover { background: #2d1f1f !important; }
 
@@ -109,16 +107,16 @@ body {
   cursor: pointer;
 }
 
-/* PAGES */
-.page { padding: 28px 24px; max-width: 900px; margin: 0 auto; }
+/* ── PAGES ────────────────────────────── */
+.page { padding: 28px 24px; max-width: 960px; margin: 0 auto; }
 .page h2 { font-size: 1.8rem; margin-bottom: 24px; color: #fff; }
 
-/* CARDS */
+/* ── CARDS ────────────────────────────── */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .card {
@@ -129,14 +127,36 @@ body {
   border: 1px solid #2a3045;
 }
 
-.card h3 { font-size: 0.9rem; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-.card p { font-size: 1.8rem; font-weight: bold; }
+.card h3 { font-size: 0.78rem; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.card p  { font-size: 1.8rem; font-weight: bold; }
 
-.income-card p { color: #4ade80; }
+.income-card  p { color: #4ade80; }
 .expense-card p { color: #f87171; }
 .balance-card p { color: #60a5fa; }
+.score-card   p { color: #facc15; }
 
-/* FORMS */
+/* ── AI STRIP ─────────────────────────── */
+.ai-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ai-strip-item {
+  background: #1e2235;
+  border: 1px solid #2a3045;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-strip-label { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+.ai-strip-item span:last-child { color: #e0e0e0; font-size: 0.93rem; line-height: 1.4; }
+
+/* ── FORMS ────────────────────────────── */
 .form-box {
   background: #1e2235;
   border-radius: 12px;
@@ -162,7 +182,6 @@ body {
 
 .form-box input:focus,
 .form-box select:focus { outline: none; border-color: #4ade80; }
-
 .form-box select option { background: #1e2235; }
 
 .form-box button {
@@ -179,7 +198,40 @@ body {
 
 .form-box button:hover { background: #22c55e; }
 
-/* SECTION BOX */
+/* ── MAGIC WAND ───────────────────────── */
+.magic-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.magic-row input {
+  flex: 1;
+  margin-bottom: 0 !important;
+  border-color: #7c3aed !important;
+  background: #1e1535 !important;
+}
+
+.magic-row input:focus { border-color: #a78bfa !important; }
+
+.magic-btn {
+  padding: 11px 16px !important;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  color: #fff !important;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  width: auto !important;
+}
+
+.magic-btn:hover { background: linear-gradient(135deg, #6d28d9, #4338ca) !important; transform: scale(1.05); }
+
+.magic-hint { color: #666; font-size: 0.8rem; margin-bottom: 14px; }
+
+/* ── SECTION BOX ──────────────────────── */
 .section-box {
   background: #1e2235;
   border-radius: 12px;
@@ -190,7 +242,7 @@ body {
 
 .section-box h3 { margin-bottom: 16px; color: #fff; }
 
-/* LIST ITEMS */
+/* ── LIST ITEMS ───────────────────────── */
 .list-item {
   display: flex;
   justify-content: space-between;
@@ -200,11 +252,10 @@ body {
 }
 
 .list-item:last-child { border-bottom: none; }
-
 .list-item .left { display: flex; flex-direction: column; gap: 4px; }
 .list-item .label { font-weight: 600; color: #fff; }
 .list-item .sub { font-size: 0.82rem; color: #888; }
-.list-item .amount-income { color: #4ade80; font-weight: bold; font-size: 1rem; }
+.list-item .amount-income  { color: #4ade80; font-weight: bold; font-size: 1rem; }
 .list-item .amount-expense { color: #f87171; font-weight: bold; font-size: 1rem; }
 
 .del-btn {
@@ -220,7 +271,7 @@ body {
 
 .del-btn:hover { background: #f87171; color: #fff; }
 
-/* PROGRESS BAR */
+/* ── PROGRESS BAR ─────────────────────── */
 .progress-bar-wrap {
   background: #2a3045;
   border-radius: 20px;
@@ -236,14 +287,147 @@ body {
   transition: width 0.4s;
 }
 
-/* EMPTY STATE */
 .empty { color: #888; text-align: center; padding: 24px; font-size: 0.95rem; }
 
-/* RESPONSIVE */
+/* ── CHATBOT BUBBLE ───────────────────── */
+#chat-bubble {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 58px;
+  height: 58px;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  cursor: pointer;
+  z-index: 999;
+  box-shadow: 0 4px 20px rgba(74,222,128,0.4);
+  transition: transform 0.2s;
+}
+
+#chat-bubble:hover { transform: scale(1.1); }
+
+/* ── CHATBOT PANEL ────────────────────── */
+#chat-panel {
+  position: fixed;
+  bottom: 100px;
+  right: 28px;
+  width: 340px;
+  height: 460px;
+  background: #1e2235;
+  border-radius: 16px;
+  border: 1px solid #2a3045;
+  display: none;
+  flex-direction: column;
+  z-index: 998;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+#chat-panel.open { display: flex; }
+
+.chat-header {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.chat-header button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-msg {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.chat-msg.bot  { background: #2a3045; color: #e0e0e0; align-self: flex-start; border-bottom-left-radius: 4px; }
+.chat-msg.user { background: #4ade80; color: #0f1117; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 600; }
+
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.chat-suggestions button {
+  background: #2a3045;
+  border: 1px solid #3a4060;
+  color: #4ade80;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chat-suggestions button:hover { background: #4ade80; color: #0f1117; }
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid #2a3045;
+}
+
+.chat-input-row input {
+  flex: 1;
+  padding: 10px 14px;
+  background: #2a3045;
+  border: 1px solid #3a4060;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.chat-input-row input:focus { outline: none; border-color: #4ade80; }
+
+.chat-input-row button {
+  padding: 10px 14px;
+  background: #4ade80;
+  border: none;
+  border-radius: 8px;
+  color: #0f1117;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.chat-input-row button:hover { background: #22c55e; }
+
+/* ── RESPONSIVE ───────────────────────── */
 @media (max-width: 600px) {
   .nav-links { display: none; flex-direction: column; width: 100%; }
   .nav-links.open { display: flex; }
   .hamburger { display: block; }
   .page { padding: 20px 16px; }
-  .cards { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .ai-strip { grid-template-columns: 1fr; }
+  #chat-panel { width: calc(100vw - 32px); right: 16px; }
 }
