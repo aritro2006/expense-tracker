@@ -1,436 +1,208 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="google-site-verification" content="IA-oxeO3H-02pyHeylGVJE9E_r8XEMFr_XBBMgdME-k" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- SEO Meta Tags -->
-  <title>FinCompan — AI-Powered Personal Finance Tracker</title>
-  <meta name="description" content="FinCompan is a free AI-powered personal finance tracker. Track income, expenses, budgets, savings goals and get weekly email summaries. Built for India." />
-  <meta name="keywords" content="expense tracker, budget tracker, finance app, income tracker, AI finance, free expense tracker India, FinCompan, personal finance India" />
-  <meta name="author" content="Aritro Ghosh" />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://fincompan.vercel.app" />
-
-  <!-- Open Graph (WhatsApp / Facebook preview) -->
-  <meta property="og:title" content="FinCompan — AI-Powered Personal Finance Tracker" />
-  <meta property="og:description" content="Free AI-powered expense and budget tracker built for India. Track income, expenses, savings goals and get weekly summaries." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://fincompan.vercel.app" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="FinCompan — AI Finance Tracker" />
-  <meta name="twitter:description" content="Free AI-powered expense tracker. Track income, budgets and savings goals. Built for India." />
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FinCompan</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
+  <!-- AUTH SECTION -->
+  <div id="auth-section">
+    <div class="auth-box">
+      <h1>💰 FinCompan</h1>
+      <p class="tagline">Your personal finance companion</p>
 
-<!-- AUTH -->
-<div id="auth-section">
-  <div class="auth-card">
-    <div class="auth-logo"><i class="fa-solid fa-wallet"></i></div>
-    <h1 class="auth-title">FinCompan</h1>
-    <p class="auth-subtitle">AI-powered personal finance</p>
-    <div class="auth-tabs">
-      <button id="loginTabBtn"    class="auth-tab active" onclick="switchTab('login')">Login</button>
-      <button id="registerTabBtn" class="auth-tab"        onclick="switchTab('register')">Register</button>
+      <div id="login-form">
+        <h2>Login</h2>
+        <input type="email" id="login-email" placeholder="Email" />
+        <input type="password" id="login-password" placeholder="Password" />
+        <button onclick="login()">Login</button>
+        <p class="switch-auth">Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+        <p id="login-error" class="error-msg"></p>
+      </div>
+
+      <div id="register-form" style="display:none">
+        <h2>Register</h2>
+        <input type="text" id="reg-name" placeholder="Full Name" />
+        <input type="email" id="reg-email" placeholder="Email" />
+        <input type="password" id="reg-password" placeholder="Password" />
+        <button onclick="register()">Create Account</button>
+        <p class="switch-auth">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+        <p id="register-error" class="error-msg"></p>
+      </div>
     </div>
-    <form id="login-form" onsubmit="loginUser(event)">
-      <div class="input-group"><i class="fa fa-envelope"></i><input id="login-email"    type="email"    placeholder="Email address" required /></div>
-      <div class="input-group"><i class="fa fa-lock"></i>   <input id="login-password" type="password" placeholder="Password"      required /></div>
-      <p id="login-msg" class="auth-msg"></p>
-      <button type="submit" class="btn-auth">Login <i class="fa fa-arrow-right"></i></button>
-    </form>
-    <form id="register-form" class="hidden" onsubmit="registerUser(event)">
-      <div class="input-group"><i class="fa fa-user"></i>   <input id="reg-name"     type="text"     placeholder="Full name"     required /></div>
-      <div class="input-group"><i class="fa fa-envelope"></i><input id="reg-email"    type="email"    placeholder="Email address" required /></div>
-      <div class="input-group"><i class="fa fa-lock"></i>   <input id="reg-password" type="password" placeholder="Password"      required /></div>
-      <p id="register-msg" class="auth-msg"></p>
-      <button type="submit" class="btn-auth">Create Account <i class="fa fa-arrow-right"></i></button>
-    </form>
   </div>
-</div>
 
+  <!-- APP SECTION -->
+  <div id="app-section" style="display:none">
 
-<!-- DASHBOARD -->
-<div id="dashboard-section" class="hidden">
-  <nav class="sidebar">
-    <div class="sidebar-logo"><i class="fa-solid fa-wallet"></i><span>FinCompan</span></div>
-    <div class="sidebar-user">
-      <div id="user-avatar" class="user-avatar">U</div>
-      <div><div id="user-name-display" class="user-name">User</div><div class="user-role">Personal Account</div></div>
-    </div>
-    <ul class="nav-list">
-      <li class="nav-item active"  onclick="showSection('dashboard',this)">   <i class="fa fa-home"></i>        <span>Dashboard</span></li>
-      <li class="nav-item"         onclick="showSection('transactions',this)"> <i class="fa fa-list"></i>        <span>Transactions</span></li>
-      <li class="nav-item"         onclick="showSection('budget',this)">       <i class="fa fa-bullseye"></i>    <span>Budgets</span></li>
-      <li class="nav-item"         onclick="showSection('goals',this)">        <i class="fa fa-trophy"></i>      <span>Goals</span></li>
-      <li class="nav-item"         onclick="showSection('analytics',this)">    <i class="fa fa-chart-bar"></i>   <span>Analytics</span></li>
-      <li class="nav-item"         onclick="showSection('recurring',this)">    <i class="fa fa-rotate"></i>      <span>Recurring</span></li>
-      <li class="nav-item"         onclick="showSection('profile',this)">      <i class="fa fa-user-circle"></i> <span>Profile</span></li>
-    </ul>
-    <button class="btn-logout" onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
-  </nav>
-
-
-  <main class="main-content">
-    <div class="topbar">
-      <div><h2 id="page-title">Dashboard</h2><p id="greeting-text" class="greeting"></p></div>
-      <div class="topbar-actions">
-        <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme"><i id="theme-icon" class="fa fa-moon"></i></button>
-        <button class="btn-add"  onclick="openModal()"><i class="fa fa-plus"></i> Add Transaction</button>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <div class="nav-brand">💰 FinCompan</div>
+      <div class="nav-links">
+        <button onclick="showPage('dashboard')">Dashboard</button>
+        <button onclick="showPage('transactions')">Transactions</button>
+        <button onclick="showPage('budget')">Budget</button>
+        <button onclick="showPage('goals')">Goals</button>
+        <button onclick="showPage('recurring')">Recurring</button>
+        <button onclick="showPage('ai')">AI Insights</button>
+        <button onclick="showPage('profile')">Profile</button>
+        <button onclick="logout()" class="logout-btn">Logout</button>
       </div>
-    </div>
+      <button class="hamburger" onclick="toggleNav()">☰</button>
+    </nav>
 
-
-    <!-- DASHBOARD VIEW -->
-    <div id="view-dashboard">
-      <div class="cards-grid">
-        <div class="card card-balance"><div class="card-icon"><i class="fa fa-wallet"></i></div><div><div class="card-label">Total Balance</div>  <div id="total-balance"  class="card-value">₹0.00</div></div></div>
-        <div class="card card-income"> <div class="card-icon"><i class="fa fa-arrow-up"></i></div><div><div class="card-label">Total Income</div>   <div id="total-income"   class="card-value">₹0.00</div></div></div>
-        <div class="card card-expense"><div class="card-icon"><i class="fa fa-arrow-down"></i></div><div><div class="card-label">Total Expenses</div><div id="total-expense"  class="card-value">₹0.00</div></div></div>
-        <div class="card card-count">  <div class="card-icon"><i class="fa fa-receipt"></i></div><div><div class="card-label">Transactions</div>   <div id="total-count"    class="card-value">0</div></div></div>
-      </div>
-      <div class="dashboard-mid">
-        <div class="chart-card"><h3>Overview</h3><canvas id="barChart"></canvas></div>
-        <div class="chart-card"><h3>Distribution</h3><canvas id="donutChart"></canvas></div>
-        <div class="health-card" id="health-card">
-          <h3>Financial Health</h3>
-          <div class="health-score-ring">
-            <svg viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="8"/>
-              <circle id="health-ring" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="8"
-                stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"
-                transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1s ease"/>
-            </svg>
-            <div class="health-score-center">
-              <span id="health-score-value">--</span>
-              <span id="health-grade" class="health-grade">-</span>
-            </div>
-          </div>
-          <p id="health-score-breakdown" class="health-breakdown">Loading score...</p>
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page">
+      <h2>Dashboard</h2>
+      <div class="cards">
+        <div class="card income-card">
+          <h3>Total Income</h3>
+          <p id="dash-income">₹0</p>
+        </div>
+        <div class="card expense-card">
+          <h3>Total Expenses</h3>
+          <p id="dash-expense">₹0</p>
+        </div>
+        <div class="card balance-card">
+          <h3>Balance</h3>
+          <p id="dash-balance">₹0</p>
         </div>
       </div>
-      <div class="dashboard-bot">
-        <div class="widget-card">
-          <div class="widget-header">
-            <h3><i class="fa fa-clock-rotate-left"></i> Recent Transactions</h3>
-            <button class="btn-link" onclick="showSection('transactions', document.querySelectorAll('.nav-item')[1])">View All</button>
-          </div>
-          <div id="transaction-list"></div>
-        </div>
-        <div class="side-widgets">
-          <div class="widget-card"><h3><i class="fa fa-calendar-week"></i> Weekly Summary</h3><p id="weekly-summary-text" class="widget-text">Loading...</p></div>
-          <div class="widget-card"><h3><i class="fa fa-lightbulb"></i> Daily Tip</h3><p id="daily-tip-text" class="widget-text">Loading...</p></div>
-          <div class="widget-card"><h3><i class="fa fa-bell"></i> Alerts</h3><div id="alerts-container"></div></div>
-        </div>
+      <div class="section-box">
+        <h3>Recent Transactions</h3>
+        <div id="dash-recent"></div>
+      </div>
+      <div class="section-box">
+        <h3>💡 Daily Tip</h3>
+        <p id="dash-tip">Loading...</p>
       </div>
     </div>
 
-
-    <!-- TRANSACTIONS VIEW -->
-    <div id="view-transactions" class="hidden">
-      <div class="toolbar">
-        <div class="filter-group">
-          <button class="filter-btn active" onclick="filterTransactions('all',this)">All</button>
-          <button class="filter-btn"        onclick="filterTransactions('income',this)">Income</button>
-          <button class="filter-btn"        onclick="filterTransactions('expense',this)">Expense</button>
-        </div>
-        <div class="search-group">
-          <i class="fa fa-search"></i>
-          <input id="search-input" type="text" placeholder="Search by name, category, notes..." oninput="searchTransactions(this.value)" />
-        </div>
-        <div class="account-filter-group">
-          <select id="account-filter" onchange="filterByAccount(this.value)">
-            <option value="all">All Accounts</option>
-            <option value="Main">Main</option>
-            <option value="Savings">Savings</option>
-            <option value="Cash">Cash</option>
-            <option value="Wallet">Wallet</option>
-          </select>
-        </div>
-        <button class="btn-export" onclick="exportCSV()"><i class="fa fa-download"></i> Export CSV</button>
-      </div>
-      <div id="transaction-list-full"></div>
-      <div id="load-more-wrap" class="load-more-wrap hidden">
-        <button id="load-more-btn" class="btn-load-more" onclick="loadMoreTransactions()">
-          <i class="fa fa-chevron-down"></i> Load More
-        </button>
-      </div>
-    </div>
-
-
-    <!-- BUDGET VIEW -->
-    <div id="view-budget" class="hidden">
-      <div class="toolbar">
-        <h3>Monthly Budgets</h3>
-        <button class="btn-add" onclick="openBudgetModal()"><i class="fa fa-plus"></i> Set Budget</button>
-      </div>
-      <div id="budget-overspend-alerts"></div>
-      <div id="budget-list" class="budget-grid"></div>
-    </div>
-
-
-    <!-- GOALS VIEW -->
-    <div id="view-goals" class="hidden">
-      <div class="toolbar">
-        <h3>Savings Goals</h3>
-        <button class="btn-add" onclick="openGoalModal()"><i class="fa fa-plus"></i> New Goal</button>
-      </div>
-      <div id="goal-advice" class="goal-advice-box hidden"></div>
-      <div id="goals-list" class="goals-grid"></div>
-    </div>
-
-
-    <!-- ANALYTICS VIEW -->
-    <div id="view-analytics" class="hidden">
-      <div class="analytics-grid">
-        <div class="chart-card"><h3>Income vs Expenses</h3><canvas id="barChart2"></canvas></div>
-        <div class="chart-card"><h3>Distribution</h3><canvas id="donutChart2"></canvas></div>
-        <div class="chart-card chart-wide"><h3>6-Month Spending Trend</h3><canvas id="trendChart"></canvas></div>
-        <div class="chart-card"><h3>Expenses by Category (This Month)</h3><canvas id="categoryChart"></canvas></div>
-        <div class="chart-card"><h3>Top 5 Spending Categories</h3><div id="top-categories-list" class="top-cat-list"></div></div>
-      </div>
-    </div>
-
-
-    <!-- RECURRING VIEW -->
-    <div id="view-recurring" class="hidden">
-      <div class="toolbar">
-        <div>
-          <h3>Recurring Transactions</h3>
-          <p class="muted-text">Optional — auto-adds transactions on the set day each month</p>
-        </div>
-        <button class="btn-add" onclick="openRecurringModal()"><i class="fa fa-plus"></i> Add Recurring</button>
-      </div>
-      <div id="recurring-list" class="recurring-grid"></div>
-    </div>
-
-
-    <!-- PROFILE VIEW -->
-    <div id="view-profile" class="hidden">
-      <div class="profile-container">
-        <div class="profile-card">
-          <div class="profile-avatar-big" id="profile-avatar-big">U</div>
-          <h3 id="profile-display-name">User</h3>
-          <p id="profile-display-email" class="muted-text"></p>
-          <div class="email-notif-toggle" style="margin-top:1.5rem;">
-            <label class="toggle-label">
-              <span>📧 Weekly Email Summary</span>
-              <input type="checkbox" id="email-notif-toggle" onchange="toggleEmailNotifications(this.checked)" />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <button class="btn-send-summary" onclick="sendWeeklySummaryNow()" style="margin-top:1rem;width:100%;padding:.6rem;background:rgba(124,58,237,.15);color:var(--accent2);border-radius:8px;font-size:.82rem;font-weight:500;">
-            <i class="fa fa-paper-plane"></i> Send Summary Now
-          </button>
-          <button class="btn-send-summary" onclick="sendTestEmail()" style="margin-top:.5rem;width:100%;padding:.6rem;background:rgba(16,185,129,.1);color:var(--income);border-radius:8px;font-size:.82rem;font-weight:500;">
-            <i class="fa fa-vial"></i> Send Test Email
-          </button>
-        </div>
-        <div class="profile-form-card">
-          <h3>Edit Profile</h3>
-          <form onsubmit="saveProfile(event)">
-            <label>Full Name</label>
-            <div class="input-group"><i class="fa fa-user"></i>    <input id="profile-name"         type="text"     placeholder="Your name" /></div>
-            <label>Email</label>
-            <div class="input-group"><i class="fa fa-envelope"></i><input id="profile-email"        type="email"    placeholder="Your email" /></div>
-            <hr class="divider" />
-            <label>Current Password</label>
-            <div class="input-group"><i class="fa fa-lock"></i>    <input id="profile-current-pass" type="password" placeholder="Current password" /></div>
-            <label>New Password</label>
-            <div class="input-group"><i class="fa fa-lock"></i>    <input id="profile-new-pass"     type="password" placeholder="New password" /></div>
-            <p id="profile-msg" class="auth-msg"></p>
-            <button type="submit" class="btn-auth">Save Changes</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-
-<!-- MODAL: ADD/EDIT TRANSACTION -->
-<div id="modal-overlay" class="modal-overlay hidden" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-title"><i class="fa fa-plus-circle"></i> New Transaction</h3>
-      <button class="modal-close" onclick="closeModal()"><i class="fa fa-times"></i></button>
-    </div>
-    <div class="smart-row">
-      <input id="smart-input" type="text" placeholder='Try: "spent 200 on lunch today"' />
-      <button class="btn-smart" type="button" onclick="parseSmartInput()" title="AI Parse"><i class="fa fa-wand-magic-sparkles"></i></button>
-      <label class="receipt-btn" title="Scan Receipt">
-        <i class="fa fa-camera"></i>
-        <input id="receipt-input" type="file" accept="image/*" onchange="handleReceiptUpload(this)" hidden />
-      </label>
-    </div>
-    <div class="smart-divider">or fill manually</div>
-    <div class="type-toggle">
-      <button id="incomeBtn"  class="type-btn active" type="button" onclick="setType('income')"> <i class="fa fa-arrow-up"></i> Income</button>
-      <button id="expenseBtn" class="type-btn"        type="button" onclick="setType('expense')"><i class="fa fa-arrow-down"></i> Expense</button>
-    </div>
-    <form id="transaction-form" onsubmit="submitTransaction(event)">
-      <input id="t-type" type="hidden" value="income" />
-      <div class="input-group"><i class="fa fa-tag"></i>                <input  id="t-text"   type="text"   placeholder="Description (e.g. Salary, Groceries)" required /></div>
-      <div id="category-display" class="category-display hidden"></div>
-      <div class="input-group"><i class="fa fa-indian-rupee-sign"></i>  <input  id="t-amount" type="number" min="0" step="0.01" placeholder="Amount" required /></div>
-      <div class="input-group"><i class="fa fa-note-sticky"></i>        <input  id="t-notes"  type="text"   placeholder="Notes / memo (optional)" /></div>
-      <div class="input-group"><i class="fa fa-building-columns"></i>
-        <select id="t-account">
-          <option value="Main">Main Account</option>
-          <option value="Savings">Savings</option>
-          <option value="Cash">Cash</option>
-          <option value="Wallet">Wallet</option>
+    <!-- TRANSACTIONS -->
+    <div id="page-transactions" class="page" style="display:none">
+      <h2>Transactions</h2>
+      <div class="form-box">
+        <h3>Add Transaction</h3>
+        <select id="txn-type">
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
         </select>
+        <input type="number" id="txn-amount" placeholder="Amount (₹)" />
+        <input type="text" id="txn-category" placeholder="Category (e.g. Food, Salary)" />
+        <input type="text" id="txn-note" placeholder="Note (optional)" />
+        <input type="date" id="txn-date" />
+        <button onclick="addTransaction()">Add Transaction</button>
+        <p id="txn-error" class="error-msg"></p>
       </div>
-      <button type="submit" class="btn-submit"><span id="submit-btn-text">Add Transaction</span></button>
-    </form>
-  </div>
-</div>
-
-
-<!-- MODAL: BUDGET -->
-<div id="budget-modal-overlay" class="modal-overlay hidden" onclick="closeBudgetModalOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h3><i class="fa fa-bullseye"></i> Set Budget</h3>
-      <button class="modal-close" onclick="closeBudgetModal()"><i class="fa fa-times"></i></button>
+      <div class="section-box">
+        <h3>All Transactions</h3>
+        <div id="txn-list"></div>
+      </div>
     </div>
-    <form onsubmit="saveBudget(event)">
-      <label>Category</label>
-      <div class="input-group"><i class="fa fa-list"></i>
-        <select id="budget-category">
-          <option value="Food">🍔 Food</option>
-          <option value="Transport">🚗 Transport</option>
-          <option value="Shopping">🛍️ Shopping</option>
-          <option value="Entertainment">🎬 Entertainment</option>
-          <option value="Health">💊 Health</option>
-          <option value="Education">📚 Education</option>
-          <option value="Utilities">💡 Utilities</option>
-          <option value="Other">📦 Other</option>
+
+    <!-- BUDGET -->
+    <div id="page-budget" class="page" style="display:none">
+      <h2>Budget</h2>
+      <div class="form-box">
+        <h3>Set Budget</h3>
+        <input type="text" id="bud-category" placeholder="Category" />
+        <input type="number" id="bud-limit" placeholder="Monthly Limit (₹)" />
+        <input type="month" id="bud-month" />
+        <button onclick="addBudget()">Set Budget</button>
+        <p id="bud-error" class="error-msg"></p>
+      </div>
+      <div class="section-box">
+        <h3>Your Budgets</h3>
+        <div id="bud-list"></div>
+      </div>
+    </div>
+
+    <!-- GOALS -->
+    <div id="page-goals" class="page" style="display:none">
+      <h2>Savings Goals</h2>
+      <div class="form-box">
+        <h3>Add Goal</h3>
+        <input type="text" id="goal-title" placeholder="Goal Title" />
+        <input type="number" id="goal-target" placeholder="Target Amount (₹)" />
+        <input type="number" id="goal-saved" placeholder="Already Saved (₹)" />
+        <input type="date" id="goal-deadline" />
+        <button onclick="addGoal()">Add Goal</button>
+        <p id="goal-error" class="error-msg"></p>
+      </div>
+      <div class="section-box">
+        <h3>Your Goals</h3>
+        <div id="goal-list"></div>
+      </div>
+    </div>
+
+    <!-- RECURRING -->
+    <div id="page-recurring" class="page" style="display:none">
+      <h2>Recurring Transactions</h2>
+      <div class="form-box">
+        <h3>Add Recurring</h3>
+        <input type="text" id="rec-title" placeholder="Title (e.g. Netflix)" />
+        <input type="number" id="rec-amount" placeholder="Amount (₹)" />
+        <input type="text" id="rec-category" placeholder="Category" />
+        <select id="rec-frequency">
+          <option value="monthly">Monthly</option>
+          <option value="weekly">Weekly</option>
+          <option value="daily">Daily</option>
         </select>
+        <input type="date" id="rec-nextdate" />
+        <button onclick="addRecurring()">Add Recurring</button>
+        <p id="rec-error" class="error-msg"></p>
       </div>
-      <label>Monthly Limit (₹)</label>
-      <div class="input-group"><i class="fa fa-indian-rupee-sign"></i><input id="budget-limit" type="number" min="1" step="0.01" placeholder="e.g. 5000" required /></div>
-      <button type="submit" class="btn-submit">Save Budget</button>
-    </form>
-  </div>
-</div>
-
-
-<!-- MODAL: RECURRING -->
-<div id="recurring-modal-overlay" class="modal-overlay hidden" onclick="closeRecurringModalOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h3><i class="fa fa-rotate"></i> Add Recurring Transaction</h3>
-      <button class="modal-close" onclick="closeRecurringModal()"><i class="fa fa-times"></i></button>
-    </div>
-    <form onsubmit="saveRecurring(event)">
-      <div class="type-toggle">
-        <button id="rec-incomeBtn"  class="type-btn active" type="button" onclick="setRecurringType('income')"> <i class="fa fa-arrow-up"></i> Income</button>
-        <button id="rec-expenseBtn" class="type-btn"        type="button" onclick="setRecurringType('expense')"><i class="fa fa-arrow-down"></i> Expense</button>
+      <div class="section-box">
+        <h3>Your Recurring</h3>
+        <div id="rec-list"></div>
       </div>
-      <input id="rec-type" type="hidden" value="income" />
-      <label>Description</label>
-      <div class="input-group"><i class="fa fa-tag"></i>               <input id="rec-text"   type="text"   placeholder="e.g. Rent, Salary" required /></div>
-      <label>Amount (₹)</label>
-      <div class="input-group"><i class="fa fa-indian-rupee-sign"></i> <input id="rec-amount" type="number" min="0" step="0.01" placeholder="Amount" required /></div>
-      <label>Category</label>
-      <div class="input-group"><i class="fa fa-list"></i>
-        <select id="rec-category">
-          <option value="Salary">💰 Salary</option>
-          <option value="Food">🍔 Food</option>
-          <option value="Transport">🚗 Transport</option>
-          <option value="Utilities">💡 Utilities</option>
-          <option value="Shopping">🛍️ Shopping</option>
-          <option value="Entertainment">🎬 Entertainment</option>
-          <option value="Health">💊 Health</option>
-          <option value="Education">📚 Education</option>
-          <option value="Business">💼 Business</option>
-          <option value="Other">📦 Other</option>
-        </select>
+    </div>
+
+    <!-- AI INSIGHTS -->
+    <div id="page-ai" class="page" style="display:none">
+      <h2>AI Insights</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Financial Health Score</h3>
+          <p id="ai-score" style="font-size:2.5rem;font-weight:bold;">--</p>
+          <p>out of 100</p>
+        </div>
       </div>
-      <label>Day of Month (1–28)</label>
-      <div class="input-group"><i class="fa fa-calendar"></i><input id="rec-day" type="number" min="1" max="28" value="1" required /></div>
-      <button type="submit" class="btn-submit">Add Recurring</button>
-    </form>
-  </div>
-</div>
-
-
-<!-- MODAL: GOAL -->
-<div id="goal-modal-overlay" class="modal-overlay hidden" onclick="closeGoalModalOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h3><i class="fa fa-trophy"></i> New Savings Goal</h3>
-      <button class="modal-close" onclick="closeGoalModal()"><i class="fa fa-times"></i></button>
+      <div class="section-box">
+        <h3>💡 Daily Tip</h3>
+        <p id="ai-tip">Loading...</p>
+      </div>
+      <div class="section-box">
+        <h3>⚠️ Alerts</h3>
+        <div id="ai-alerts"></div>
+      </div>
+      <div class="section-box">
+        <h3>📊 Summary</h3>
+        <div id="ai-summary"></div>
+      </div>
     </div>
-    <form onsubmit="saveGoal(event)">
-      <label>Goal Title</label>
-      <div class="input-group"><i class="fa fa-star"></i>              <input id="goal-title"    type="text"   placeholder="e.g. New Phone, Emergency Fund" required /></div>
-      <label>Target Amount (₹)</label>
-      <div class="input-group"><i class="fa fa-indian-rupee-sign"></i> <input id="goal-target"   type="number" min="1" step="0.01" placeholder="e.g. 20000" required /></div>
-      <label>Already Saved (₹)</label>
-      <div class="input-group"><i class="fa fa-piggy-bank"></i>        <input id="goal-saved"    type="number" min="0" step="0.01" value="0" /></div>
-      <label>Deadline (optional)</label>
-      <div class="input-group"><i class="fa fa-calendar"></i>          <input id="goal-deadline" type="date" /></div>
-      <label>Emoji</label>
-      <div class="input-group"><i class="fa fa-face-smile"></i>        <input id="goal-emoji"    type="text" placeholder="🎯" maxlength="2" value="🎯" /></div>
-      <button type="submit" class="btn-submit">Create Goal</button>
-    </form>
-  </div>
-</div>
 
-
-<!-- MODAL: ADD TO GOAL -->
-<div id="add-to-goal-overlay" class="modal-overlay hidden" onclick="closeAddToGoalOutside(event)">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <h3><i class="fa fa-piggy-bank"></i> Add to Goal</h3>
-      <button class="modal-close" onclick="closeAddToGoal()"><i class="fa fa-times"></i></button>
+    <!-- PROFILE -->
+    <div id="page-profile" class="page" style="display:none">
+      <h2>Profile</h2>
+      <div class="form-box">
+        <h3>Your Details</h3>
+        <input type="text" id="prof-name" placeholder="Full Name" />
+        <input type="email" id="prof-email" placeholder="Email" disabled />
+        <button onclick="updateProfile()">Update Profile</button>
+        <p id="prof-msg" class="success-msg"></p>
+      </div>
+      <div class="form-box" style="margin-top:20px">
+        <h3>📧 Email Notifications</h3>
+        <p style="color:#aaa">Email service is temporarily disabled. Coming soon!</p>
+      </div>
     </div>
-    <input id="add-goal-id" type="hidden" />
-    <label>Amount to Add (₹)</label>
-    <div class="input-group"><i class="fa fa-indian-rupee-sign"></i><input id="add-goal-amount" type="number" min="1" step="0.01" placeholder="Amount" /></div>
-    <button class="btn-submit" onclick="confirmAddToGoal()">Add</button>
-  </div>
-</div>
 
+  </div>
 
-<!-- AI CHAT -->
-<div id="ai-chat-panel" class="ai-chat-panel hidden">
-  <div class="ai-chat-header">
-    <div><i class="fa-solid fa-robot"></i> AI Finance Assistant</div>
-    <button onclick="toggleAIChat()"><i class="fa fa-times"></i></button>
-  </div>
-  <div id="ai-chat-window" class="ai-chat-window">
-    <div class="ai-welcome-msg">
-      <i class="fa-solid fa-robot ai-welcome-icon"></i>
-      <p>Hi! I'm your AI finance assistant. Ask me anything about your finances.</p>
-    </div>
-  </div>
-  <div class="ai-quick-btns">
-    <button onclick="analyzeFinances()">📊 Analyze</button>
-    <button onclick="generateMonthlyReport()">📋 Report</button>
-    <button onclick="getPrediction()">🔮 Predict</button>
-  </div>
-  <div class="ai-input-row">
-    <input id="ai-input" type="text" placeholder="Ask about your finances..."
-      onkeydown="if(event.key==='Enter') sendAIMessage()" />
-    <button onclick="sendAIMessage()"><i class="fa fa-paper-plane"></i></button>
-  </div>
-</div>
-
-
-<button class="ai-fab" onclick="toggleAIChat()"><i id="ai-fab-icon" class="fa-solid fa-robot"></i></button>
-<div id="toast" class="toast hidden"></div>
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

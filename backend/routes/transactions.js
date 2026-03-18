@@ -5,78 +5,32 @@ const Transaction = require('../models/Transaction');
 
 router.get('/', auth, async (req, res) => {
   try {
-    const transactions = await Transaction.find({ user: req.user.id }).sort({ date: -1 });
-    res.json(transactions);
-  } catch (err) {
-    console.error('GET transactions error:', err.message);
-    res.status(500).json({ message: 'Failed to load transactions' });
-  }
+    const list = await Transaction.find({ user: req.userId }).sort({ date: -1 });
+    res.json(list);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post('/', auth, async (req, res) => {
   try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'Unauthorized. Please login again.' });
-    }
-
-    const { text, amount, category, emoji, notes, account } = req.body;
-
-    if (!text || !text.trim()) {
-      return res.status(400).json({ message: 'Description is required' });
-    }
-    if (amount === undefined || amount === null || isNaN(parseFloat(amount))) {
-      return res.status(400).json({ message: 'A valid amount is required' });
-    }
-
-    const t = new Transaction({
-      user:     req.user.id,
-      text:     text.trim(),
-      amount:   parseFloat(amount),
-      category: category || 'Other',
-      emoji:    emoji    || (parseFloat(amount) > 0 ? '💰' : '💸'),
-      notes:    notes    || '',
-      account:  account  || 'Main',
-      date:     new Date()
-    });
-
-    await t.save();
-    res.status(201).json(t);
-  } catch (err) {
-    console.error('POST transaction error:', err.message);
-    res.status(500).json({ message: 'Failed to save transaction: ' + err.message });
-  }
+    const t = await Transaction.create({ ...req.body, user: req.userId });
+    res.json(t);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const t = await Transaction.findOne({ _id: req.params.id, user: req.user.id });
-    if (!t) return res.status(404).json({ message: 'Transaction not found' });
-
-    const { text, amount, category, emoji, notes, account } = req.body;
-    if (text     !== undefined) t.text     = text;
-    if (amount   !== undefined) t.amount   = parseFloat(amount);
-    if (category !== undefined) t.category = category;
-    if (emoji    !== undefined) t.emoji    = emoji;
-    if (notes    !== undefined) t.notes    = notes;
-    if (account  !== undefined) t.account  = account;
-
-    await t.save();
+    const t = await Transaction.findOneAndUpdate(
+      { _id: req.params.id, user: req.userId }, req.body, { new: true }
+    );
     res.json(t);
-  } catch (err) {
-    console.error('PUT transaction error:', err.message);
-    res.status(500).json({ message: 'Failed to update transaction' });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const t = await Transaction.findOneAndDelete({ _id: req.params.id, user: req.user.id });
-    if (!t) return res.status(404).json({ message: 'Transaction not found' });
-    res.json({ message: 'Deleted' });
-  } catch (err) {
-    console.error('DELETE transaction error:', err.message);
-    res.status(500).json({ message: 'Failed to delete transaction' });
-  }
+    await Transaction.findOneAndDelete({ _id: req.params.id, user: req.userId });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;

@@ -5,65 +5,32 @@ const Goal    = require('../models/Goal');
 
 router.get('/', auth, async (req, res) => {
   try {
-    const goals = await Goal.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json(goals);
-  } catch (err) {
-    console.error('GET goals error:', err.message);
-    res.status(500).json({ message: 'Failed to load goals' });
-  }
+    const list = await Goal.find({ user: req.userId });
+    res.json(list);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, targetAmount, savedAmount, deadline, emoji } = req.body;
-    if (!title || !targetAmount) return res.status(400).json({ message: 'Title and target amount are required' });
-
-    const goal = new Goal({
-      user: req.user.id,
-      title:        title.trim(),
-      targetAmount: parseFloat(targetAmount),
-      savedAmount:  parseFloat(savedAmount) || 0,
-      deadline:     deadline || null,
-      emoji:        emoji    || '🎯'
-    });
-
-    await goal.save();
-    res.status(201).json(goal);
-  } catch (err) {
-    console.error('POST goal error:', err.message);
-    res.status(500).json({ message: 'Failed to create goal' });
-  }
+    const g = await Goal.create({ ...req.body, user: req.userId });
+    res.json(g);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.put('/:id', auth, async (req, res) => {
   try {
-    const goal = await Goal.findOne({ _id: req.params.id, user: req.user.id });
-    if (!goal) return res.status(404).json({ message: 'Goal not found' });
-
-    const { title, targetAmount, savedAmount, deadline, emoji } = req.body;
-    if (title        !== undefined) goal.title        = title;
-    if (targetAmount !== undefined) goal.targetAmount = parseFloat(targetAmount);
-    if (savedAmount  !== undefined) goal.savedAmount  = parseFloat(savedAmount);
-    if (deadline     !== undefined) goal.deadline     = deadline;
-    if (emoji        !== undefined) goal.emoji        = emoji;
-
-    await goal.save();
-    res.json(goal);
-  } catch (err) {
-    console.error('PUT goal error:', err.message);
-    res.status(500).json({ message: 'Failed to update goal' });
-  }
+    const g = await Goal.findOneAndUpdate(
+      { _id: req.params.id, user: req.userId }, req.body, { new: true }
+    );
+    res.json(g);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const goal = await Goal.findOneAndDelete({ _id: req.params.id, user: req.user.id });
-    if (!goal) return res.status(404).json({ message: 'Goal not found' });
-    res.json({ message: 'Deleted' });
-  } catch (err) {
-    console.error('DELETE goal error:', err.message);
-    res.status(500).json({ message: 'Failed to delete goal' });
-  }
+    await Goal.findOneAndDelete({ _id: req.params.id, user: req.userId });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;
